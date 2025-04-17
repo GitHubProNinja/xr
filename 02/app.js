@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { VRButton } from 'three/addons/webxr/VRButton.js';
 import { BoxLineGeometry } from 'three/addons/geometries/BoxLineGeometry.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import Stats from 'three/addons/libs/stats.module.js';
 
 class App {
@@ -9,6 +10,9 @@ class App {
         document.body.appendChild(container);
 
         this.clock = new THREE.Clock();
+
+        this.camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+        this.camera.position.set(0, 1.6, 3);
 
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color(0x505050);
@@ -25,6 +29,10 @@ class App {
         this.renderer.outputEncoding = THREE.sRGBEncoding;
 
         container.appendChild(this.renderer.domElement);
+
+        this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+        this.controls.target.set(0, 1.6, 0);
+        this.controls.update();
 
         this.stats = new Stats();
         container.appendChild(this.stats.dom);
@@ -72,14 +80,15 @@ class App {
     }
 
     resize() {
-
+        this.camera.aspect = window.innerWidth / window.innerHeight;
+        this.camera.updateProjectionMatrix();
         this.renderer.setSize(window.innerWidth, window.innerHeight);
     }
 
     render() {
         this.stats.update();
 
-
+        this.renderer.render(this.scene, this.camera);
     }
 }
 
