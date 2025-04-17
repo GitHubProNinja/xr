@@ -3,6 +3,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 // import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import Stats from 'three/addons/libs/stats.module.js';
+import { VRButton } from 'three/addons/webxr/VRButton.js';
 
 let scene, renderer, camera, stats;
 let dirLight, dirLightHelper;
@@ -43,6 +44,7 @@ function init() {
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.xr.enabled = true;
     document.body.appendChild(renderer.domElement);
 
     //NOTE: the camera's "near" parameter make a BIG difference if changed from 1 to 0.1
@@ -57,23 +59,21 @@ function init() {
     // controls.target.set(0, 1, 5);
     // controls.update();
 
+    document.body.appendChild(VRButton.createButton(renderer));
+
     stats = new Stats();
     document.body.appendChild(stats.dom);
 
     window.addEventListener('resize', onWindowResize);
 
     createGUI();
-    animate();
+    renderer.setAnimationLoop(animate);
 }
 
 function animate() {
     renderer.render(scene, camera);
     stats.update();
-    // NOTE: Place requestAnimationFrame(animate) at the bottom
-    //       below lines show why
-    // let x = 2 / 0;
-    // dirLight.intensity = x;
-    requestAnimationFrame(animate);
+
 }
 
 function onWindowResize() {
