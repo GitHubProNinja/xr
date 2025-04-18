@@ -50,7 +50,7 @@ function init() {
 
     //NOTE: the camera's "near" parameter make a BIG difference if changed from 1 to 0.1
     camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-    //camera.position.set(2, 4, 12);
+    // camera.position.set(2, 4, 12);
     // scene.add(camera);
     // camera.add(pointLight);
 
@@ -70,7 +70,7 @@ function init() {
     cameraHolder = new THREE.Object3D();
     cameraHolder.position.z = 5;
     cameraHolder.position.y = 2;
-    cameraHolder.add(cameraHolder);
+    cameraHolder.add(camera);
     scene.add(cameraHolder);
 
     createGUI();
