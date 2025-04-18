@@ -69,7 +69,7 @@ function init() {
 
     cameraHolder = new THREE.Object3D();
     cameraHolder.position.z = 5;
-    // cameraHolder.position.y = 2;
+    cameraHolder.position.y = 2;
     cameraHolder.add(camera);
     scene.add(cameraHolder);
 
