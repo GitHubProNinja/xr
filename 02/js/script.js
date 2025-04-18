@@ -68,7 +68,7 @@ function init() {
     window.addEventListener('resize', onWindowResize);
 
     cameraHolder = new THREE.Object3D();
-    // cameraHolder.position.z = 5;
+    cameraHolder.position.z = 5;
     // cameraHolder.position.y = 2;
     cameraHolder.add(camera);
     scene.add(cameraHolder);
