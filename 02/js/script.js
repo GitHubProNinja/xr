@@ -67,11 +67,11 @@ function init() {
 
     window.addEventListener('resize', onWindowResize);
 
-    // cameraHolder = new THREE.Object3D();
-    camera.position.z = 5;
-    camera.position.y = 2;
-    // cameraHolder.add(camera);
-    scene.add(camera);
+    cameraHolder = new THREE.Object3D();
+    cameraHolder.position.z = 5;
+    cameraHolder.position.y = 2;
+    cameraHolder.add(cameraHolder);
+    scene.add(cameraHolder);
 
     createGUI();
     renderer.setAnimationLoop(animate);
