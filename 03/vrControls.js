@@ -8,6 +8,7 @@
 //   // Use cameraHolder in your render loop
 
 import * as THREE from 'three';
+import { VRButton } from 'three/addons/webxr/VRButton.js';
 
 export function setupVRControls(renderer, scene, camera) {
     // Make a camera holder (group) for VR movement
@@ -16,9 +17,19 @@ export function setupVRControls(renderer, scene, camera) {
     cameraHolder.add(camera);
     scene.add(cameraHolder);
 
+    // Add a button to enter/exit VR to the page (moved from main.js)
+    document.body.appendChild(VRButton.createButton(renderer));
+
+    // Optionally, add a visible model for the controller (not required for movement)
+    // import { XRControllerModelFactory } from 'https://unpkg.com/three/examples/jsm/webxr/XRControllerModelFactory.js';
+    // const controllerModelFactory = new XRControllerModelFactory();
+    // let rightControllerGrip = renderer.xr.getControllerGrip(0);
+    // rightControllerGrip.add(controllerModelFactory.createControllerModel(rightControllerGrip));
+    // scene.add(rightControllerGrip);
+
     // --- VR controller movement logic ---
     // We'll use the right controller (index 0 or 1, depending on device)
-    let rightController = renderer.xr.getController(0); // 0 is usually right, but may be left on some devices
+    let rightController = renderer.xr.getController(1); // 0 is usually right, but may be left on some devices
     scene.add(rightController);
     let rightGamepad = null;
     // Moved event listeners for 'connected' and 'disconnected' here from main.js

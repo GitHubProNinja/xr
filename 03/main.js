@@ -4,8 +4,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 // import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import Stats from 'three/addons/libs/stats.module.js';
-// Import the default VRButton
-import { VRButton } from "three/addons/webxr/VRButton.js";
+
 import { setupVRControls } from './vrControls.js';
 
 // Make a new scene
@@ -30,12 +29,9 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.xr.enabled = true;
 // Add canvas to the page
 document.body.appendChild(renderer.domElement);
-// Add a button to enter/exit vr to the page
-document.body.appendChild(VRButton.createButton(renderer));
 
 // Set up VR controls and camera holder (after renderer is initialized)
 const vr = setupVRControls(renderer, scene, camera);
-const cameraHolder = vr.cameraHolder;
 
 // Add some lights
 var light = new THREE.DirectionalLight(0xffffff, 0.5);
@@ -58,21 +54,6 @@ renderer.setAnimationLoop(render);
 //    import { ARButton } from 'https://unpkg.com/three/examples/jsm/webxr/ARButton.js';
 // then create the button
 //  document.body.appendChild(ARButton.createButton(renderer));
-
-// --- VR controller movement logic ---
-// We'll use the right controller (index 0 or 1, depending on device)
-let rightController = renderer.xr.getController(0); // 0 is usually right, but may be left on some devices
-scene.add(rightController);
-
-// Optionally, add a visible model for the controller (not required for movement)
-// import { XRControllerModelFactory } from 'https://unpkg.com/three/examples/jsm/webxr/XRControllerModelFactory.js';
-// const controllerModelFactory = new XRControllerModelFactory();
-// let rightControllerGrip = renderer.xr.getControllerGrip(0);
-// rightControllerGrip.add(controllerModelFactory.createControllerModel(rightControllerGrip));
-// scene.add(rightControllerGrip);
-
-// Movement speed factor
-const moveSpeed = 0.05;
 
 // Handle browser resize
 window.addEventListener("resize", onWindowResize, false);
