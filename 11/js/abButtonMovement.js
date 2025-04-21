@@ -5,12 +5,23 @@ let rightController;
 export function setupABButtonMovement(renderer, scene, cameraHolder) {
     const controllerModelFactory = new XRControllerModelFactory();
 
-    // Right controller
-    rightController = renderer.xr.getController(1);
-    scene.add(rightController);
-    const rightControllerGrip = renderer.xr.getControllerGrip(1);
-    rightControllerGrip.add(controllerModelFactory.createControllerModel(rightControllerGrip));
-    scene.add(rightControllerGrip);
+    // Listen for controller connection and assign rightController by handedness
+    function onControllerConnected(event) {
+        const handedness = event.data.handedness;
+        if (handedness === 'right') {
+            rightController = event.target;
+        }
+    }
+
+    // Add both controllers and listen for 'connected' event
+    for (let i = 0; i < 2; i++) {
+        const controller = renderer.xr.getController(i);
+        controller.addEventListener('connected', onControllerConnected);
+        scene.add(controller);
+        const controllerGrip = renderer.xr.getControllerGrip(i);
+        controllerGrip.add(controllerModelFactory.createControllerModel(controllerGrip));
+        scene.add(controllerGrip);
+    }
 }
 
 export function updateABButtonMovement(cameraHolder) {
