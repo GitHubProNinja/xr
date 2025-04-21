@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import Stats from 'three/addons/libs/stats.module.js';
 import { VRButton } from 'three/addons/webxr/VRButton.js';
-import { setupABButtonMovement } from './abButtonMovement.js';
+import { setupABButtonMovement, updateABButtonMovement } from './abButtonMovement.js';
 
 let scene, renderer, camera, stats;
 let dirLight, dirLightHelper;
@@ -65,8 +65,8 @@ function init() {
     window.addEventListener('resize', onWindowResize);
 
     cameraHolder = new THREE.Object3D();
-    //cameraHolder.position.z = 5;
-    //cameraHolder.position.y = 2;
+    cameraHolder.position.z = 5;
+    cameraHolder.position.y = 2;
     cameraHolder.add(camera);
     scene.add(cameraHolder);
 
@@ -76,6 +76,7 @@ function init() {
 }
 
 function animate() {
+    updateABButtonMovement(cameraHolder);
     renderer.render(scene, camera);
     stats.update();
 
