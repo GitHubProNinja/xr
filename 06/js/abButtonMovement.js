@@ -5,9 +5,9 @@ export function setupABButtonMovement(renderer, scene, cameraHolder) {
     const controllerModelFactory = new XRControllerModelFactory();
 
     // Right controller
-    rightController = renderer.xr.getController(0);
+    rightController = renderer.xr.getController(1);
     scene.add(rightController);
-    rightControllerGrip = renderer.xr.getControllerGrip(0);
+    rightControllerGrip = renderer.xr.getControllerGrip(1);
     rightControllerGrip.add(controllerModelFactory.createControllerModel(rightControllerGrip));
     scene.add(rightControllerGrip);
 
