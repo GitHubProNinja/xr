@@ -2,14 +2,13 @@ import * as THREE from 'three';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import Stats from 'three/addons/libs/stats.module.js';
 import { VRButton } from 'three/addons/webxr/VRButton.js';
-import { handleABButtonMovement } from './abButtonMovement.js';
+import { setupMovementControllers } from './movementControls.js';
 
 let scene, renderer, camera, stats;
 let dirLight, dirLightHelper;
 let gridHelper, axesHelper;
 let ground, ambientLight;
 let cameraHolder;
-let rightController;
 
 init();
 
@@ -71,15 +70,12 @@ function init() {
     cameraHolder.add(camera);
     scene.add(cameraHolder);
 
-    rightController = renderer.xr.getController(0);
-    scene.add(rightController);
-
     createGUI();
+    setupMovementControllers(renderer, scene, cameraHolder);
     renderer.setAnimationLoop(animate);
 }
 
 function animate() {
-    handleABButtonMovement(rightController, cameraHolder);
     renderer.render(scene, camera);
     stats.update();
 
