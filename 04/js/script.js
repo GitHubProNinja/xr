@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import Stats from 'three/addons/libs/stats.module.js';
 import { VRButton } from 'three/addons/webxr/VRButton.js';
-import { setupMovementControllers } from './movementControls.js';
+import { setupABButtonMovement } from './abButtonMovement.js';
 
 let scene, renderer, camera, stats;
 let dirLight, dirLightHelper;
@@ -71,7 +71,7 @@ function init() {
     scene.add(cameraHolder);
 
     createGUI();
-    setupMovementControllers(renderer, scene, cameraHolder);
+    setupABButtonMovement(renderer, scene, cameraHolder);
     renderer.setAnimationLoop(animate);
 }
 
