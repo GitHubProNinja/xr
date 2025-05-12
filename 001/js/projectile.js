@@ -104,7 +104,7 @@ export function setupProjectileShooting(renderer, scene) {
                 .normalize();
             createProjectile(worldTip, forward, scene);
 
-            // Play muzzle flash if available
+            // Play muzzle flash for the correct gun
             if (controllerGrip.children[0] && controllerGrip.children[0].userData.muzzleFlash) {
                 controllerGrip.children[0].userData.muzzleFlash.play();
             }

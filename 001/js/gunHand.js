@@ -34,7 +34,7 @@ function attachGunToControllerGrip(controllerGrip) {
     // Create and attach the muzzle flash
     const muzzleFlash = createMuzzleFlash();
     gun.add(muzzleFlash.mesh);
-    gun.userData.muzzleFlash = muzzleFlash;
+    gun.userData.muzzleFlash = muzzleFlash; // Restore reference for per-gun muzzle flash
 
     controllerGrip.add(gun);
     // Removed debugging logs related to the cone

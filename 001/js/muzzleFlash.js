@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 
+const allMuzzleFlashes = [];
+
 /**
  * Creates a sphere to represent the muzzle flash with animation capabilities.
  * @returns {object} An object containing the mesh, a play method, and an update method.
@@ -57,9 +59,21 @@ export function createMuzzleFlash() {
         }
     }
 
-    return {
+    const flashObj = {
         mesh: muzzleFlashMesh,
         play,
         update
     };
+    allMuzzleFlashes.push(flashObj);
+    return flashObj;
+}
+
+/**
+ * Updates all muzzle flashes created in the app.
+ * Call this from your main render loop.
+ */
+export function updateAllMuzzleFlashes(delta) {
+    for (const flash of allMuzzleFlashes) {
+        flash.update(delta);
+    }
 }

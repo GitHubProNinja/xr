@@ -12,6 +12,7 @@ import { updateExplosionPieces, setExplosionFinishedCallback } from './explodeCu
 import { spawnCube, initGameLogic, getCurrentCube, startGame } from './gameLogic.js';
 import { initSound } from './sound.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+import { updateAllMuzzleFlashes } from './muzzleFlash.js';
 
 // Make a new scene
 let scene = new THREE.Scene();
@@ -85,15 +86,6 @@ function onWindowResize() {
 // --- Projectile logic ---
 // (All projectile logic is now handled in projectile.js)
 
-function updateMuzzleFlashes(delta) {
-    for (let i = 0; i < 2; i++) {
-        const grip = renderer.xr.getControllerGrip(i);
-        if (grip.children[0] && grip.children[0].userData.muzzleFlash) {
-            grip.children[0].userData.muzzleFlash.update(delta);
-        }
-    }
-}
-
 let lastTime = 0;
 function render(time) {
     const delta = (time - lastTime);
@@ -108,8 +100,8 @@ function render(time) {
     // Update explosion pieces (handled in explodeCube.js)
     updateExplosionPieces(scene, delta / 1000);
 
-    // Update muzzle flashes for all controllers
-    updateMuzzleFlashes(delta);
+    // Update all muzzle flashes (from muzzleFlash.js)
+    updateAllMuzzleFlashes(delta);
 
     // Draw everything
     renderer.render(scene, camera);
