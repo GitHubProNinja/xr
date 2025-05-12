@@ -85,6 +85,15 @@ function onWindowResize() {
 // --- Projectile logic ---
 // (All projectile logic is now handled in projectile.js)
 
+function updateMuzzleFlashes(delta) {
+    for (let i = 0; i < 2; i++) {
+        const grip = renderer.xr.getControllerGrip(i);
+        if (grip.children[0] && grip.children[0].userData.muzzleFlash) {
+            grip.children[0].userData.muzzleFlash.update(delta);
+        }
+    }
+}
+
 let lastTime = 0;
 function render(time) {
     const delta = (time - lastTime);
@@ -99,15 +108,8 @@ function render(time) {
     // Update explosion pieces (handled in explodeCube.js)
     updateExplosionPieces(scene, delta / 1000);
 
-    // Update muzzle flashes for both controllers
-    const controllerGrip0 = renderer.xr.getControllerGrip(0);
-    const controllerGrip1 = renderer.xr.getControllerGrip(1);
-    if (controllerGrip0.children[0] && controllerGrip0.children[0].userData.muzzleFlash) {
-        controllerGrip0.children[0].userData.muzzleFlash.update(delta);
-    }
-    if (controllerGrip1.children[0] && controllerGrip1.children[0].userData.muzzleFlash) {
-        controllerGrip1.children[0].userData.muzzleFlash.update(delta);
-    }
+    // Update muzzle flashes for all controllers
+    updateMuzzleFlashes(delta);
 
     // Draw everything
     renderer.render(scene, camera);
