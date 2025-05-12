@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Sprite Animation</title>
+		<style>
+			body {
+				margin: 0;
+				overflow: hidden;
+			}
+			canvas {
+				display: block;
+			}
+		</style>
+	</head>
+	<body>
+		<script type="importmap">
+			{
+				"imports": {
+					"three": "https://unpkg.com/three@0.175.0/build/three.module.js",
+					"three/addons/": "https://unpkg.com/three@0.175.0/examples/jsm/"
+				}
+			}
+		</script>
+		<script type="module">
+			import * as THREE from "three";
+			import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+			import { GUI } from "three/addons/libs/lil-gui.module.min.js";
+
+			// Scene, Camera, Renderer
+			const scene = new THREE.Scene();
+			const camera = new THREE.PerspectiveCamera(
+				75,
+				window.innerWidth / window.innerHeight,
+				0.1,
+				1000
+			);
+			const renderer = new THREE.WebGLRenderer();
+			renderer.setSize(window.innerWidth, window.innerHeight);
+			document.body.appendChild(renderer.domElement);
+
+			// Add Orbit Controls
+			const controls = new OrbitControls(camera, renderer.domElement);
+			controls.enableDamping = true; // Enable damping for smoother controls
+
+			// Load Texture
+			const textureLoader = new THREE.TextureLoader();
+			const texture = textureLoader.load("./sprites/muzzleflash.png");
+
+			// Create a sphere Geometry
+			const sphereGeometry = new THREE.SphereGeometry(1, 10, 10); // Radius, Height, Radial Segments
+			const sphereMaterial = new THREE.MeshBasicMaterial({
+				map: texture,
+				transparent: true, // Ensure transparency if the texture has an alpha channel
+				side: THREE.DoubleSide, // Render both sides of the sphere
+			});
+			const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+			scene.add(sphere);
+
+			// Position sphere
+			sphere.position.set(0, 0, 0); // Adjust position as needed
+			sphere.rotation.x = Math.PI; // Flip the sphere to point forward
+
+			// Removed unnecessary references to `sprite` as it is no longer used.
+
+			camera.position.z = 5;
+
+			// Animation Variables
+			const totalFrames = 5;
+			const frameWidth = 1 / totalFrames;
+			let currentFrame = 0;
+			let elapsedTime = 0;
+			const frameDuration = 100; // Duration of each frame in milliseconds
+
+			// Animation Loop
+			function animate(time) {
+				requestAnimationFrame(animate);
+
+				// Update Animation
+				if (!elapsedTime) elapsedTime = time; // Initialize elapsedTime on the first frame
+				const delta = time - elapsedTime;
+				if (delta >= frameDuration) {
+					currentFrame = (currentFrame + 1) % totalFrames;
+					sphereMaterial.map.offset.x = currentFrame * frameWidth; // Update sphere material's texture offset
+					elapsedTime = time; // Reset elapsedTime to the current time
+				}
+
+				// Update controls
+				controls.update();
+
+				// Render Scene
+				renderer.render(scene, camera);
+			}
+
+			// Set Texture Wrapping and Offset
+			texture.wrapS = THREE.RepeatWrapping;
+			texture.wrapT = THREE.RepeatWrapping;
+			texture.repeat.set(frameWidth, 1);
+			texture.offset.set(0, 0);
+
+			animate();
+
+			// Handle Window Resize
+			window.addEventListener("resize", () => {
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+				renderer.setSize(window.innerWidth, window.innerHeight);
+			});
+		</script>
+	</body>
+</html>
