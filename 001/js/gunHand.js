@@ -30,12 +30,13 @@ function attachGunToControllerGrip(controllerGrip) {
     gun.position.set(0, 0, 0);
     // gun.rotation.set(-Math.PI / 6, -Math.PI / 2, 0); // for Rick Gun: Tilt 30 degrees downward (X), -90 degrees Y to point forward
     gun.rotation.set(-Math.PI / 6, -Math.PI, 0); // For watergun: Tilt 30 degrees downward (X), 180 degrees Y to point forward
+
+    // Create and attach the muzzle flash
+    const muzzleFlash = createMuzzleFlash();
+    gun.add(muzzleFlash.mesh);
+    gun.userData.muzzleFlash = muzzleFlash;
+
     controllerGrip.add(gun);
-
-    // Create and attach the muzzle flash cone
-    const cone = createMuzzleFlash();
-    gun.add(cone);
-
     // Removed debugging logs related to the cone
 }
 

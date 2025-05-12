@@ -87,7 +87,7 @@ function onWindowResize() {
 
 let lastTime = 0;
 function render(time) {
-    const delta = (time - lastTime) / 1000;
+    const delta = (time - lastTime);
     lastTime = time;
     // Rotate the cube if it exists and not exploded
     const cube = getCurrentCube();
@@ -97,7 +97,18 @@ function render(time) {
     // Update projectiles (handled in projectile.js)
     updateProjectiles(scene);
     // Update explosion pieces (handled in explodeCube.js)
-    updateExplosionPieces(scene, delta);
+    updateExplosionPieces(scene, delta / 1000);
+
+    // Update muzzle flashes for both controllers
+    const controllerGrip0 = renderer.xr.getControllerGrip(0);
+    const controllerGrip1 = renderer.xr.getControllerGrip(1);
+    if (controllerGrip0.children[0] && controllerGrip0.children[0].userData.muzzleFlash) {
+        controllerGrip0.children[0].userData.muzzleFlash.update(delta);
+    }
+    if (controllerGrip1.children[0] && controllerGrip1.children[0].userData.muzzleFlash) {
+        controllerGrip1.children[0].userData.muzzleFlash.update(delta);
+    }
+
     // Draw everything
     renderer.render(scene, camera);
 }

@@ -103,6 +103,11 @@ export function setupProjectileShooting(renderer, scene) {
                 .applyQuaternion(controllerGrip.getWorldQuaternion(new THREE.Quaternion()))
                 .normalize();
             createProjectile(worldTip, forward, scene);
+
+            // Play muzzle flash if available
+            if (controllerGrip.children[0] && controllerGrip.children[0].userData.muzzleFlash) {
+                controllerGrip.children[0].userData.muzzleFlash.play();
+            }
         }
         // Right controller shooting
         const rightControllerGrip = renderer.xr.getControllerGrip(1);
