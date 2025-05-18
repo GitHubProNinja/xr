@@ -3,6 +3,7 @@ import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { spawnProjectile, updateProjectiles, getActiveProjectiles } from './projectiles.js';
 import { spawnZombie, updateZombies, checkZombieHits, setDebugCylindersVisible } from './zombies.js';
 import { XRControllerModelFactory } from 'three/addons/webxr/XRControllerModelFactory.js';
+import { loadGunModel } from './gunLoader.js';
 
 let scene, renderer, camera;
 let dirLight;
@@ -60,28 +61,29 @@ async function init() {
         zombiesSpawned = true;
     }
 
-    // --- VR Controller Support ---
+    // --- VR Controller Support with Gun Model ---
     const controller1 = renderer.xr.getController(0);
-    controller1.addEventListener('selectstart', (event) => {
+    controller1.addEventListener('selectstart', () => {
         // Shoot projectile from controller1 position/direction
         spawnProjectile(scene, controller1);
     });
     scene.add(controller1);
 
     const controller2 = renderer.xr.getController(1);
-    controller2.addEventListener('selectstart', (event) => {
+    controller2.addEventListener('selectstart', () => {
         // Shoot projectile from controller2 position/direction
         spawnProjectile(scene, controller2);
     });
     scene.add(controller2);
 
-    const controllerModelFactory = new XRControllerModelFactory();
+    // Attach gun model to each controller grip
     const controllerGrip1 = renderer.xr.getControllerGrip(0);
-    controllerGrip1.add(controllerModelFactory.createControllerModel(controllerGrip1));
-    scene.add(controllerGrip1);
-
     const controllerGrip2 = renderer.xr.getControllerGrip(1);
-    controllerGrip2.add(controllerModelFactory.createControllerModel(controllerGrip2));
+    const gun1 = await loadGunModel();
+    const gun2 = await loadGunModel();
+    controllerGrip1.add(gun1.clone());
+    controllerGrip2.add(gun2.clone());
+    scene.add(controllerGrip1);
     scene.add(controllerGrip2);
 
     renderer.setAnimationLoop(animate);
