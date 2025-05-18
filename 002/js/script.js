@@ -52,14 +52,20 @@ async function init() {
     if (!zombiesSpawned) {
         const { getRandomZombieSpawnPosition } = await import('./zombies.js');
         for (let i = 0; i < 2; i++) {
-            await spawnZombie('Mutant', scene, getRandomZombieSpawnPosition(camera));
+            // Spawn Mutant zombies close (2-3 units) in front of the camera
+            const pos = getRandomZombieSpawnPosition(camera);
+            const dir = new THREE.Vector3();
+            camera.getWorldDirection(dir);
+            dir.y = 0; dir.normalize();
+            pos.copy(camera.position).add(dir.multiplyScalar(2 + Math.random()));
+            await spawnZombie('Mutant', scene, pos);
         }
-        for (let i = 0; i < 5; i++) {
-            await spawnZombie('Yaku', scene, getRandomZombieSpawnPosition(camera));
-        }
-        for (let i = 0; i < 3; i++) {
-            await spawnZombie('Parasite', scene, getRandomZombieSpawnPosition(camera));
-        }
+        // for (let i = 0; i < 5; i++) {
+        //     await spawnZombie('Yaku', scene, getRandomZombieSpawnPosition(camera));
+        // }
+        // for (let i = 0; i < 3; i++) {
+        //     await spawnZombie('Parasite', scene, getRandomZombieSpawnPosition(camera));
+        // }
         zombiesSpawned = true;
     }
 
