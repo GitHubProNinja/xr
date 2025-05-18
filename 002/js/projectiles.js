@@ -10,9 +10,19 @@ const activeProjectiles = [];
  * @param {number} [speed=0.25] - The speed of the projectile.
  */
 export function spawnProjectile(scene, model, speed = 0.25) {
-    const geometry = new THREE.SphereGeometry(0.05, 16, 16);
-    // Set projectile color to red using HSL (hue=0 for red)
-    const color = new THREE.Color().setHSL(1, 1, 0.5);
+    const geometry = new THREE.SphereGeometry(0.04, 4, 4);
+    // Set projectile color to random neon color using HSL (high saturation, high lightness)
+    // HSL hue reference (0-1):
+    // 0 or 1   = Red
+    // 0.08     = Orange
+    // 0.16     = Yellow
+    // 0.33     = Green
+    // 0.5      = Cyan
+    // 0.66     = Blue
+    // 0.83     = Magenta/Pink
+    // 0.91     = Rose
+    const hue = Math.random();
+    const color = new THREE.Color().setHSL(hue, 1, 0.5);
     const material = new THREE.MeshStandardMaterial({
         wireframe: true,
         color: color,
