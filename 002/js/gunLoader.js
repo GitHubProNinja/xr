@@ -15,8 +15,7 @@ export async function loadGunModel() {
     gunModel = gltf.scene;
     gunModel.scale.set(0.4, 0.4, 0.4);
     // Fix orientation: rotate so gun points forward in controller
-    gunModel.rotation.set(0, Math.PI, 0, 'XYZ');
-    // Pull the gun back in the hand (reduce z offset)
-    gunModel.position.set(0, -0.03, 0.5); // was 0.07, now 0.03
+    gunModel.rotation.set(0, Math.PI, 0, 'XYZ'); // Remove -Math.PI/2 X rotation
+    gunModel.position.set(0, -0.03, 0.05);
     return gunModel;
 }
