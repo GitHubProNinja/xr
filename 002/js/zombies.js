@@ -344,7 +344,7 @@ export function getRandomZombieSpawnPosition(player) {
     // Random distance 10-30 units
     const dist = 10 + Math.random() * 20;
     // Random lateral spread -10 to +10 units
-    const spread = (Math.random() - 0.5) * 10;
+    const spread = (Math.random() - 0.5) * 20;
     // Compute right vector for lateral offset
     const right = new THREE.Vector3().crossVectors(dir, new THREE.Vector3(0, 1, 0)).normalize();
     // Final spawn position
