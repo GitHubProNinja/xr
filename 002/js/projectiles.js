@@ -11,27 +11,37 @@ const activeProjectiles = [];
  */
 export function spawnProjectile(scene, model, speed = 0.25) {
     const geometry = new THREE.SphereGeometry(0.05, 16, 16);
-    // Generate a random neon color (HSV: high saturation, high value, random hue)
     const hue = Math.random();
-    const color = new THREE.Color().setHSL(hue, 1, 0.5); // vivid color
+    const color = new THREE.Color().setHSL(hue, 1, 0.5);
     const material = new THREE.MeshStandardMaterial({
         wireframe: true,
         color: color,
         emissive: color,
-        emissiveIntensity: 10, // very bright
+        emissiveIntensity: 10,
         metalness: 0.5,
         roughness: 0.1
     });
     const projectile = new THREE.Mesh(geometry, material);
-    // Start at the model's hand/gun position (approximate: in front of chest)
-    const start = new THREE.Vector3(0, 1.1, -0.3); // adjust as needed for hand position
-    start.applyMatrix4(model.matrixWorld);
+    // VR controller: spawn from tip (0, 0, -0.06) in controller local space
+    let start;
+    if (model && model.matrixWorld) {
+        start = new THREE.Vector3(0, 0, -0.06).applyMatrix4(model.matrixWorld);
+    } else {
+        // Fallback: in front of model (e.g. camera)
+        start = new THREE.Vector3(0, 1.1, -0.3);
+        if (model && model.matrixWorld) start.applyMatrix4(model.matrixWorld);
+    }
     projectile.position.copy(start);
     scene.add(projectile);
-    // Get forward direction
-    const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(model.quaternion).normalize();
+    // Get forward direction (controller -Z in world space)
+    let forward;
+    if (model && model.matrixWorld) {
+        forward = new THREE.Vector3(0, 0, -1).applyQuaternion(model.getWorldQuaternion(new THREE.Quaternion())).normalize();
+    } else {
+        forward = new THREE.Vector3(0, 0, -1);
+    }
     projectile.userData.velocity = forward.multiplyScalar(speed);
-    activeProjectiles.push({ mesh: projectile, origin: model.position.clone() });
+    activeProjectiles.push({ mesh: projectile, origin: start.clone() });
 }
 
 /**

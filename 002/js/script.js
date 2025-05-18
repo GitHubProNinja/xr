@@ -63,15 +63,15 @@ async function init() {
     // --- VR Controller Support ---
     const controller1 = renderer.xr.getController(0);
     controller1.addEventListener('selectstart', (event) => {
-        // TODO: Implement VR shooting logic here
-        console.log('Controller 1 selectstart');
+        // Shoot projectile from controller1 position/direction
+        spawnProjectile(scene, controller1);
     });
     scene.add(controller1);
 
     const controller2 = renderer.xr.getController(1);
     controller2.addEventListener('selectstart', (event) => {
-        // TODO: Implement VR shooting logic here
-        console.log('Controller 2 selectstart');
+        // Shoot projectile from controller2 position/direction
+        spawnProjectile(scene, controller2);
     });
     scene.add(controller2);
 
@@ -89,7 +89,7 @@ async function init() {
 
 function animate() {
     // --- Move projectiles (if any logic remains) ---
-    updateProjectiles(scene, null); // No player model
+    updateProjectiles(scene, camera); // Use camera as fallback for player position
     // --- Zombie logic ---
     updateZombies(camera.position, 1 / 60); // Use camera as player position
     checkZombieHits(scene, getActiveProjectiles);
