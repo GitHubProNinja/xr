@@ -34,10 +34,12 @@ async function init() {
         document.body.appendChild(VRButton.createButton(renderer));
     });
 
+    // Use a VR-compatible camera (THREE.PerspectiveCamera is already VR-compatible)
     camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
     camera.position.set(0, 2, 4);
     camera.lookAt(new THREE.Vector3(0, 1.2, 0));
-    scene.add(camera);
+    // Do NOT add camera to scene in VR mode (Three.js handles this internally)
+    // scene.add(camera); // REMOVE this line for VR
 
     window.addEventListener('resize', onWindowResize);
 
