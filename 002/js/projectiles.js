@@ -12,7 +12,7 @@ const activeProjectiles = [];
 export function spawnProjectile(scene, model, speed = 0.25) {
     const geometry = new THREE.SphereGeometry(0.05, 16, 16);
     // Set projectile color to red using HSL (hue=0 for red)
-    const color = new THREE.Color().setHSL(1, 1, 0.5);
+    const color = new THREE.Color().setHSL(0.5, 1, 0.5);
     const material = new THREE.MeshStandardMaterial({
         wireframe: true,
         color: color,
