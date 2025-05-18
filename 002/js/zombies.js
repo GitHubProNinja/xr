@@ -97,6 +97,7 @@ export async function spawnZombie(type, scene, position) {
     const cylinderGeometry = new THREE.CylinderGeometry(radius, radius, height, 16, 1, true);
     const cylinderMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
     const debugCylinder = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
+    debugCylinder.visible = showDebugCylinders;
     debugCylinder.matrixAutoUpdate = false;
     scene.add(debugCylinder);
     pivot.userData.debugCylinder = debugCylinder;
@@ -367,7 +368,7 @@ export function getRandomZombieSpawnPosition(player) {
 // }
 // For future: add hit detection, attack/death logic, and support for more types
 
-let showDebugCylinders = true;
+let showDebugCylinders = false;
 
 export function setDebugCylindersVisible(visible) {
     showDebugCylinders = visible;

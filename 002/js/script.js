@@ -119,7 +119,7 @@ function createGUI() {
     gui.add(params, 'speed', 0.001, 0.1, 0.001).name('Move Speed');
 
     // Add checkbox for debug cylinder visibility
-    const debugObj = { showDebugCylinders: true };
+    const debugObj = { showDebugCylinders: false };
     gui.add(debugObj, 'showDebugCylinders')
         .name('Show Debug Cylinders')
         .onChange(setDebugCylindersVisible);
