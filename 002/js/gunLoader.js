@@ -17,6 +17,6 @@ export async function loadGunModel() {
     // Fix orientation: rotate so gun points forward in controller
     gunModel.rotation.set(0, Math.PI, 0, 'XYZ');
     // Move the gun a little bit forward in the hand (increase z offset)
-    gunModel.position.set(0, -0.03, 0.13); // was 0.05, now 0.07
+    gunModel.position.set(0, 0, 0); // was 0.05, now 0.07
     return gunModel;
 }
