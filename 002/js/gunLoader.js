@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 let gunModel = null;
@@ -14,9 +15,9 @@ export async function loadGunModel() {
     const gltf = await loader.loadAsync('./assets/gun.glb');
     gunModel = gltf.scene;
     gunModel.scale.set(0.4, 0.4, 0.4);
-    // Fix orientation: rotate so gun points forward in controller
-    gunModel.rotation.set(0, Math.PI, 0, 'XYZ');
+    // Fix orientation: rotate so gun points forward in controller, and tilt down 5 degrees
+    gunModel.rotation.set(THREE.MathUtils.degToRad(-5), Math.PI, 0, 'XYZ');
     // Move the gun a little bit forward in the hand (increase z offset)
-    gunModel.position.set(0, 0, 0); // was 0.05, now 0.07
+    gunModel.position.set(0, 0, 0.03); // was 0.05, now 0.07
     return gunModel;
 }
