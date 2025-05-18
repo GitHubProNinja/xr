@@ -6,6 +6,7 @@ import { loadAJModelWithAnimations } from './modelLoader.js';
 import { setupKeyboardControls } from './keyboardControls.js';
 import { spawnProjectile, updateProjectiles, getActiveProjectiles } from './projectiles.js';
 import { spawnZombie, updateZombies, checkZombieHits, setDebugCylindersVisible } from './zombies.js';
+import { XRControllerModelFactory } from 'three/addons/webxr/XRControllerModelFactory.js';
 
 let scene, renderer, camera, stats;
 let dirLight;
@@ -34,7 +35,13 @@ async function init() {
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.xr.enabled = true; // Enable WebXR for VR
     document.body.appendChild(renderer.domElement);
+
+    // Add VRButton to enable entering VR
+    import('three/addons/webxr/VRButton.js').then(({ VRButton }) => {
+        document.body.appendChild(VRButton.createButton(renderer));
+    });
 
     camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
     camera.position.set(0, 2, 4); // Start behind the model, looking forward (Z negative)
@@ -113,7 +120,36 @@ async function init() {
         }
     });
 
-    animate();
+    // --- VR Controller Support ---
+    import('three/addons/webxr/XRControllerModelFactory.js').then(({ XRControllerModelFactory }) => {
+        // Controller 1
+        const controller1 = renderer.xr.getController(0);
+        controller1.addEventListener('selectstart', (event) => {
+            // TODO: Implement VR shooting logic here
+            console.log('Controller 1 selectstart');
+        });
+        scene.add(controller1);
+
+        // Controller 2
+        const controller2 = renderer.xr.getController(1);
+        controller2.addEventListener('selectstart', (event) => {
+            // TODO: Implement VR shooting logic here
+            console.log('Controller 2 selectstart');
+        });
+        scene.add(controller2);
+
+        // Controller models (grip)
+        const controllerModelFactory = new XRControllerModelFactory();
+        const controllerGrip1 = renderer.xr.getControllerGrip(0);
+        controllerGrip1.add(controllerModelFactory.createControllerModel(controllerGrip1));
+        scene.add(controllerGrip1);
+
+        const controllerGrip2 = renderer.xr.getControllerGrip(1);
+        controllerGrip2.add(controllerModelFactory.createControllerModel(controllerGrip2));
+        scene.add(controllerGrip2);
+    });
+
+    renderer.setAnimationLoop(animate);
 }
 
 function animate() {
@@ -153,7 +189,6 @@ function animate() {
     }
     renderer.render(scene, camera);
     stats.update();
-    requestAnimationFrame(animate);
 }
 
 function onWindowResize() {
