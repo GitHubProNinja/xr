@@ -18,6 +18,6 @@ export async function loadGunModel() {
     // Fix orientation: rotate so gun points forward in controller, and tilt down 5 degrees
     gunModel.rotation.set(THREE.MathUtils.degToRad(-13), Math.PI, 0, 'XYZ');
     // Move the gun a little bit forward in the hand (increase z offset)
-    gunModel.position.set(0, -0.05, -0.05);
+    gunModel.position.set(0, -0.12, -0.05);
     return gunModel;
 }
