@@ -111,7 +111,7 @@ function onWindowResize() {
 function createGUI() {
     const gui = new GUI();
     window._ajGui = gui;
-    gui.addColor(scene, 'background').name('Background Color');
+    // gui.addColor(scene, 'background').name('Background Color');
     gui.add(ambientLight, 'intensity', 0, 5, 0.1).name('Ambient Light Intensity');
 
     const dirLightFolder = gui.addFolder('Directional Light');
