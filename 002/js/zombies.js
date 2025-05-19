@@ -3,6 +3,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 import { clone as SkeletonClone } from 'three/addons/utils/SkeletonUtils.js';
 import { crossFadeAnimation, playAnimation, stopAllAnimations } from './animationHandler.js';
+import { playPositionalSound } from './sound.js';
 
 // Generalized zombie configuration for future extensibility
 const ZOMBIE_TYPES = {
@@ -241,6 +242,13 @@ export function checkZombieHits(scene, getProjectiles) {
                     if (typeof zombie.model.userData.hitCount !== 'number') zombie.model.userData.hitCount = 0;
                     if (typeof zombie.model.userData.dyingTimer !== 'number') zombie.model.userData.dyingTimer = 0;
                     const hitCount = ++zombie.model.userData.hitCount;
+                    // Play zombie hit sound (per type)
+                    if (def.type === 'Mutant') {
+                        playPositionalSound('assets/sounds/mutant_hit.mp3', zombie.model);
+                    } else if (def.type === 'Parasite') {
+                        playPositionalSound('assets/sounds/parasite_hit.mp3', zombie.model);
+                    }
+                    // Remove projectile
                     scene.remove(proj.mesh);
                     if (proj.mesh.geometry) proj.mesh.geometry.dispose();
                     if (proj.mesh.material) {
@@ -270,6 +278,14 @@ export function checkZombieHits(scene, getProjectiles) {
                             const dyingAction = playAnimation(zombie.mixer, zombie.animations.Dying);
                             dyingAction.setLoop(THREE.LoopOnce, 1);
                             dyingAction.clampWhenFinished = true;
+                            // Play zombie dying sound (per type)
+                            if (def.type === 'Mutant') {
+                                playPositionalSound('assets/sounds/mutant_dying.mp3', zombie.model);
+                            } else if (def.type === 'Parasite') {
+                                playPositionalSound('assets/sounds/parasite_dying.mp3', zombie.model);
+                            } else if (def.type === 'Yaku') {
+                                playPositionalSound('assets/sounds/yaku_dying.mp3', zombie.model);
+                            }
                             const onDyingFinished = (event) => {
                                 if (event.action === dyingAction) {
                                     zombie.mixer.removeEventListener('finished', onDyingFinished);
@@ -283,7 +299,6 @@ export function checkZombieHits(scene, getProjectiles) {
                                     zombie.model.userData.hitCount = 0;
                                     zombie.model.userData.dyingTimer = 0;
                                     zombie.model.userData.dyingAction = null;
-                                    zombie.model.userData.resuming = false;
                                     zombie.alive = true;
                                     zombie.dying = false;
                                     playAnimation(zombie.mixer, zombie.animations.Walking);

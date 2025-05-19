@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { playSound } from './sound.js';
 
 // Internal array to manage active projectiles
 const activeProjectiles = [];
@@ -43,6 +44,8 @@ export function spawnProjectile(scene, model, speed = 0.25) {
     }
     projectile.position.copy(start);
     scene.add(projectile);
+    // Play gunshot sound at projectile spawn position
+    playSound('assets/sounds/gunshot.mp3', projectile.position, scene);
     // Get forward direction (controller -Z in world space)
     let forward;
     if (model && model.matrixWorld) {
