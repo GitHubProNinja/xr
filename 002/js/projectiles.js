@@ -45,7 +45,7 @@ export function spawnProjectile(scene, model, speed = 0.25) {
     projectile.position.copy(start);
     scene.add(projectile);
     // Play gunshot sound (non-positional, no extra args)
-    playSound('assets/Sounds/gun.wav');
+    playSound('assets/Sounds/gunshot.wav');
     // Get forward direction (controller -Z in world space)
     let forward;
     if (model && model.matrixWorld) {
