@@ -39,8 +39,12 @@ async function init() {
     camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
     camera.position.set(0, 2, 4);
     camera.lookAt(new THREE.Vector3(0, 1.2, 0));
-    // Do NOT add camera to scene in VR mode (Three.js handles this internally)
-    // scene.add(camera); // REMOVE this line for VR
+    scene.add(camera); // Add camera to scene for VR sound compatibility
+
+    // Attach AudioListener to camera at startup (no XR session event needed)
+    import('./sound.js').then(({ attachListener }) => {
+        attachListener(camera);
+    });
 
     window.addEventListener('resize', onWindowResize);
 
