@@ -244,9 +244,9 @@ export function checkZombieHits(scene, getProjectiles) {
                     const hitCount = ++zombie.model.userData.hitCount;
                     // Play zombie hit sound (per type)
                     if (def.type === 'Mutant') {
-                        playPositionalSound('assets/sounds/mutant_hit.mp3', zombie.model);
+                        playPositionalSound('assets/Sounds/mutant_hit.mp3', zombie.model);
                     } else if (def.type === 'Parasite') {
-                        playPositionalSound('assets/sounds/parasite_hit.mp3', zombie.model);
+                        playPositionalSound('assets/Sounds/parasite_hit.mp3', zombie.model);
                     }
                     // Remove projectile
                     scene.remove(proj.mesh);
@@ -280,11 +280,11 @@ export function checkZombieHits(scene, getProjectiles) {
                             dyingAction.clampWhenFinished = true;
                             // Play zombie dying sound (per type)
                             if (def.type === 'Mutant') {
-                                playPositionalSound('assets/sounds/mutant_dying.mp3', zombie.model);
+                                playPositionalSound('assets/Sounds/mutant_dying.mp3', zombie.model);
                             } else if (def.type === 'Parasite') {
-                                playPositionalSound('assets/sounds/parasite_dying.mp3', zombie.model);
+                                playPositionalSound('assets/Sounds/parasite_dying.mp3', zombie.model);
                             } else if (def.type === 'Yaku') {
-                                playPositionalSound('assets/sounds/yaku_dying.mp3', zombie.model);
+                                playPositionalSound('assets/Sounds/yaku_dying.mp3', zombie.model);
                             }
                             const onDyingFinished = (event) => {
                                 if (event.action === dyingAction) {
