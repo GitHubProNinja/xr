@@ -5,7 +5,8 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import Stats from 'three/addons/libs/stats.module.js';
 // Import the default VRButton
-import { VRButton } from "three/addons/webxr/VRButton.js";
+import { VRButton } from 'three/addons/webxr/VRButton.js';
+import { ARButton } from 'three/addons/webxr/ARButton.js';
 import { setupProjectileShooting, updateProjectiles } from './projectile.js';
 import { setupGunHands } from './gunHand.js';
 import { updateExplosionPieces, setExplosionFinishedCallback } from './explodeCube.js';
@@ -19,12 +20,15 @@ let scene = new THREE.Scene();
 // Set background color of the scene to gray
 scene.background = new THREE.Color(0x505050);
 
+// Skybox texture variable
+let skyboxTexture = null;
 // JPG skybox
 new THREE.TextureLoader()
     .setPath('img/')
     .load('cave.jpg', function (texture) {
         texture.mapping = THREE.EquirectangularReflectionMapping;
         scene.background = texture;
+        skyboxTexture = texture;
         // scene.environment = null; // Not recommended for reflections
     });
 
@@ -62,8 +66,33 @@ renderer.xr.enabled = true;
 renderer.setAnimationLoop(render);
 // Add canvas to the page
 document.body.appendChild(renderer.domElement);
-// Add a button to enter/exit vr to the page
-document.body.appendChild(VRButton.createButton(renderer));
+// Add both VR and AR buttons to the page
+const vrBtn = VRButton.createButton(renderer);
+const arBtn = ARButton.createButton(renderer);
+vrBtn.style.position = 'fixed';
+vrBtn.style.left = '20px';
+vrBtn.style.bottom = '20px';
+vrBtn.style.zIndex = '10';
+arBtn.style.position = 'fixed';
+arBtn.style.left = '20px';
+arBtn.style.bottom = '70px';
+arBtn.style.zIndex = '10';
+document.body.appendChild(vrBtn);
+document.body.appendChild(arBtn);
+
+// Optionally, adjust scene for AR/VR mode
+renderer.xr.addEventListener('sessionstart', () => {
+    const session = renderer.xr.getSession();
+    if (session.environmentBlendMode === 'opaque') {
+        // VR mode: restore skybox if loaded, else fallback color
+        scene.background = skyboxTexture || new THREE.Color(0x505050);
+    } else if (session.environmentBlendMode === 'additive' || session.environmentBlendMode === 'alpha-blend') {
+        // AR mode
+        renderer.setClearAlpha(0);
+        scene.background = null; // transparent for AR
+        // Optionally adjust lighting, UI, etc.
+    }
+});
 
 // Use gun model hands
 setupGunHands(renderer, scene);
