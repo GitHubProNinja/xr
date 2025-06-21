@@ -58,7 +58,7 @@ init();
 function init() {
 
     scene = new THREE.Scene();
-    scene.background = new THREE.Color('green');
+    scene.background = new THREE.Color('yellow');
 
     ambientLight = new THREE.AmbientLight(0xffffff);
     scene.add(ambientLight);
@@ -144,12 +144,12 @@ function init() {
 
     // --- XR Controllers Setup ---
     function setupXRControllers(renderer, scene) {
-        // Set up right controller ray
-        const rightRay = renderer.xr.getController(0);
+        // Set up right controller ray (should be index 1 for right hand)
+        const rightRay = renderer.xr.getController(1);
         scene.add(rightRay);
         // Set up right controller grip (for model)
         const controllerModelFactory = new XRControllerModelFactory();
-        const rightGrip = renderer.xr.getControllerGrip(0);
+        const rightGrip = renderer.xr.getControllerGrip(1);
         rightGrip.add(controllerModelFactory.createControllerModel(rightGrip));
         scene.add(rightGrip);
         controllers.right = {
@@ -173,6 +173,17 @@ function init() {
     }
 
     setupXRControllers(renderer, scene);
+
+    // --- AR-only scene shift for comfortable content height ---
+    renderer.xr.addEventListener('sessionstart', (event) => {
+        const session = renderer.xr.getSession();
+        if (session && session.mode === 'immersive-ar') {
+            scene.position.y = -1.5; // Shift scene down in AR only
+        }
+    });
+    renderer.xr.addEventListener('sessionend', (event) => {
+        scene.position.y = 0; // Reset scene position for all modes
+    });
 }
 
 let gamepadWrapper = null;
