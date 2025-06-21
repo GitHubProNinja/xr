@@ -4,6 +4,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import Stats from 'three/addons/libs/stats.module.js';
 import { ARButton } from 'three/addons/webxr/ARButton.js';
+import { VRButton } from 'three/addons/webxr/VRButton.js';
 import { GamepadWrapper, XR_BUTTONS } from './gamepad-wrapper.module.js';
 import { XRControllerModelFactory } from 'three/addons/webxr/XRControllerModelFactory.js';
 import gsap from 'https://esm.sh/gsap@3.12.5';
@@ -57,7 +58,7 @@ init();
 function init() {
 
     scene = new THREE.Scene();
-    scene.background = new THREE.Color('navy');
+    scene.background = new THREE.Color('green');
 
     ambientLight = new THREE.AmbientLight(0xffffff);
     scene.add(ambientLight);
@@ -86,6 +87,20 @@ function init() {
     renderer.xr.enabled = true;
     document.body.appendChild(renderer.domElement);
 
+    // Add both VR and AR buttons to the page
+    const vrBtn = VRButton.createButton(renderer);
+    const arBtn = ARButton.createButton(renderer);
+    vrBtn.style.position = 'fixed';
+    vrBtn.style.left = '20px';
+    vrBtn.style.bottom = '20px';
+    vrBtn.style.zIndex = '10';
+    arBtn.style.position = 'fixed';
+    arBtn.style.left = '20px';
+    arBtn.style.bottom = '70px';
+    arBtn.style.zIndex = '10';
+    document.body.appendChild(vrBtn);
+    document.body.appendChild(arBtn);
+
     camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
     camera.position.set(2, 4, 12);
     scene.add(camera);
@@ -93,8 +108,6 @@ function init() {
     loadSounds(camera);
 
     const controls = new OrbitControls(camera, renderer.domElement);
-
-    document.body.appendChild(ARButton.createButton(renderer));
 
     stats = new Stats();
     document.body.appendChild(stats.dom);
