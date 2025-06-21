@@ -58,7 +58,7 @@ init();
 function init() {
 
     scene = new THREE.Scene();
-    scene.background = new THREE.Color('yellow');
+    scene.background = new THREE.Color('navy');
 
     ambientLight = new THREE.AmbientLight(0xffffff);
     scene.add(ambientLight);
@@ -174,16 +174,34 @@ function init() {
 
     setupXRControllers(renderer, scene);
 
-    // --- AR-only scene shift for comfortable content height ---
+    // --- AR-only scene shift for comfortable content height with polyfill-friendly AR detection ---
     renderer.xr.addEventListener('sessionstart', (event) => {
         const session = renderer.xr.getSession();
-        if (session && session.mode === 'immersive-ar') {
-            scene.position.y = -1.5; // Shift scene down in AR only
+        console.log('[XR] Session object:', session);
+        // Try all known ways to detect AR, including polyfill clues
+        if (
+            (session && (session.type === 'immersive-ar' || session.mode === 'immersive-ar')) ||
+            (session && session.domOverlayState) // Polyfill clue
+        ) {
+            scene.position.y = -1.5;
+            console.log('[AR] Scene shifted down: scene.position.y =', scene.position.y);
+        } else {
+            console.log('[XR] Session started, could not detect AR mode. Session:', session);
         }
     });
     renderer.xr.addEventListener('sessionend', (event) => {
         scene.position.y = 0; // Reset scene position for all modes
+        console.log('[XR] Session ended, scene.position.y reset to 0');
     });
+    // Add a large visible ground plane for AR debugging
+    const debugGround = new THREE.Mesh(
+        new THREE.PlaneGeometry(5, 5),
+        new THREE.MeshBasicMaterial({ color: 0xff0000, side: THREE.DoubleSide, opacity: 0.5, transparent: true })
+    );
+    debugGround.rotation.x = -Math.PI / 2;
+    debugGround.position.y = 0;
+    debugGround.visible = true;
+    scene.add(debugGround);
 }
 
 let gamepadWrapper = null;
