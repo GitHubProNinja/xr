@@ -14,6 +14,7 @@ let menu, raycaster = new THREE.Raycaster(), tempMatrix = new THREE.Matrix4();
 let intersected = null;
 let reticle = null;
 const neonColors = [0x39ff14, 0xff073a, 0x00f0ff, 0xfffb00, 0xff00ea]; // neon green, red, blue, yellow, magenta
+const dullColors = [0x228b22, 0x8b0000, 0x008b8b, 0x8b8b00, 0x8b008b]; // dull green, red, blue, yellow, magenta
 
 let pointerLine = null;
 
@@ -23,7 +24,7 @@ function init() {
 
     scene = new THREE.Scene();
     // scene.background = new THREE.Color(0x001951);
-    scene.background = new THREE.Color('navy');
+    scene.background = new THREE.Color('gray');
 
     ambientLight = new THREE.AmbientLight(0xffffff);
     scene.add(ambientLight);
@@ -93,7 +94,7 @@ function init() {
     // Create reticle (small sphere) for menu intersection
     reticle = new THREE.Mesh(
         new THREE.SphereGeometry(0.012, 16, 16),
-        new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffff00 })
+        new THREE.MeshStandardMaterial({ color: 0xffffff })
     );
     reticle.visible = false;
     scene.add(reticle);
@@ -127,13 +128,11 @@ function animate() {
             const hit = intersects[0];
             if (intersected !== hit.object) {
                 if (intersected) {
-                    intersected.material.emissive.set(0x000000);
-                    intersected.material.emissiveIntensity = 1;
+                    intersected.material.color.set(intersected.userData.dull);
                     intersected.scale.set(1, 1, 1);
                 }
                 intersected = hit.object;
-                intersected.material.emissive.set(intersected.material.color.getHex());
-                intersected.material.emissiveIntensity = 3;
+                intersected.material.color.set(intersected.userData.neon);
                 intersected.scale.set(1.2, 1.2, 1.2);
             }
             // Show reticle at intersection point
@@ -142,8 +141,7 @@ function animate() {
             reticleVisible = true;
         } else {
             if (intersected) {
-                intersected.material.emissive.set(0x000000);
-                intersected.material.emissiveIntensity = 1;
+                intersected.material.color.set(intersected.userData.dull);
                 intersected.scale.set(1, 1, 1);
             }
             intersected = null;
@@ -166,10 +164,10 @@ function createColorMenu() {
     for (let i = 0; i < neonColors.length; i++) {
         const btn = new THREE.Mesh(
             new THREE.BoxGeometry(0.08, 0.08, 0.02),
-            new THREE.MeshStandardMaterial({ color: neonColors[i], emissive: 0x000000, emissiveIntensity: 1 })
+            new THREE.MeshStandardMaterial({ color: dullColors[i] })
         );
         btn.position.set(0, 0.18 - i * 0.09, 0);
-        btn.userData = { color: neonColors[i] };
+        btn.userData = { color: neonColors[i], dull: dullColors[i], neon: neonColors[i] };
         group.add(btn);
     }
     return group;
@@ -178,7 +176,6 @@ function createColorMenu() {
 function onSelectStart() {
     if (intersected && intersected.userData.color) {
         cube.material.color.set(intersected.userData.color);
-        cube.material.emissive.set(intersected.userData.color);
     }
 }
 
