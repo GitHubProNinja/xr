@@ -106,7 +106,7 @@ function init() {
     ]);
     pointerLine = new THREE.Line(
         pointerGeom,
-        new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 6 })
+        new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 4 })
     );
     rightController.add(pointerLine);
 
