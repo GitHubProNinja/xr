@@ -23,7 +23,7 @@ function init() {
 
     scene = new THREE.Scene();
     // scene.background = new THREE.Color(0x001951);
-    scene.background = new THREE.Color('blue');
+    scene.background = new THREE.Color('gray');
 
     ambientLight = new THREE.AmbientLight(0xffffff);
     scene.add(ambientLight);
@@ -101,11 +101,11 @@ function init() {
     // Create pointer line for right controller
     const pointerGeom = new THREE.BufferGeometry().setFromPoints([
         new THREE.Vector3(0, 0, 0),
-        new THREE.Vector3(0, 0, -0.5)
+        new THREE.Vector3(0, 0, -0.25)
     ]);
     pointerLine = new THREE.Line(
         pointerGeom,
-        new THREE.LineBasicMaterial({ color: 0xffffff })
+        new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 6 })
     );
     rightController.add(pointerLine);
 
