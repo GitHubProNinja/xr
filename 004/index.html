@@ -64,7 +64,7 @@
 
 			function init() {
 				scene = new THREE.Scene();
-				scene.background = new THREE.Color("green"); // dark blue
+				scene.background = new THREE.Color("yellow"); // dark blue
 				camera = new THREE.PerspectiveCamera(
 					70,
 					window.innerWidth / window.innerHeight,
@@ -149,6 +149,7 @@
 			}
 
 			function onSelectStart(index) {
+				scene.updateMatrixWorld(true); // Ensure world matrices are up to date
 				const ctrl = controllers[index];
 				tempMatrix.identity().extractRotation(ctrl.matrixWorld);
 				raycaster.ray.origin.setFromMatrixPosition(ctrl.matrixWorld);
@@ -198,6 +199,7 @@
 			}
 
 			function render() {
+				scene.updateMatrixWorld(true); // Ensure world matrices are up to date
 				for (let i = 0; i < controllers.length; i++) {
 					const ctrl = controllers[i];
 					if (ctrl) {
