@@ -15,13 +15,15 @@ let intersected = null;
 let reticle = null;
 const neonColors = [0x39ff14, 0xff073a, 0x00f0ff, 0xfffb00, 0xff00ea]; // neon green, red, blue, yellow, magenta
 
+let pointerLine = null;
+
 init();
 
 function init() {
 
     scene = new THREE.Scene();
     // scene.background = new THREE.Color(0x001951);
-    scene.background = new THREE.Color('green');
+    scene.background = new THREE.Color('blue');
 
     ambientLight = new THREE.AmbientLight(0xffffff);
     scene.add(ambientLight);
@@ -95,6 +97,17 @@ function init() {
     );
     reticle.visible = false;
     scene.add(reticle);
+
+    // Create pointer line for right controller
+    const pointerGeom = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(0, 0, 0),
+        new THREE.Vector3(0, 0, -0.5)
+    ]);
+    pointerLine = new THREE.Line(
+        pointerGeom,
+        new THREE.LineBasicMaterial({ color: 0xffffff })
+    );
+    rightController.add(pointerLine);
 
     // Raycaster for right controller
     rightController.addEventListener('selectstart', onSelectStart);
