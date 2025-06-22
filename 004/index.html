@@ -64,7 +64,7 @@
 
 			function init() {
 				scene = new THREE.Scene();
-				scene.background = new THREE.Color("blue"); // dark blue
+				scene.background = new THREE.Color("black"); // dark blue
 				camera = new THREE.PerspectiveCamera(
 					70,
 					window.innerWidth / window.innerHeight,
@@ -92,11 +92,6 @@
 				// Add light
 				scene.add(new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1));
 
-				// Create a simple menu (plane with two buttons)
-				menu = createMenu();
-				menu.position.set(0, 0.1, -0.6); // Place menu in front of user in world space
-				scene.add(menu);
-
 				// Controller setup for both hands
 				for (let i = 0; i < 2; i++) {
 					const ctrl = renderer.xr.getController(i);
@@ -118,6 +113,10 @@
 					controllers.push(ctrl);
 					scene.add(ctrl);
 				}
+				// Create a simple menu (plane with two buttons) and attach to right controller
+				menu = createMenu();
+				menu.position.set(0, 0.1, -0.2); // Offset in front of controller
+				controllers[1].add(menu); // Attach menu to right controller
 
 				// Raycaster for interaction
 				raycaster = new THREE.Raycaster();
@@ -198,27 +197,33 @@
 				for (let i = 0; i < controllers.length; i++) {
 					const ctrl = controllers[i];
 					if (ctrl) {
-						// Raycast from controller to menu and cube in world space
+						// Raycast from controller to menu in controller's local space
+						let menuObjects = [];
+						if (i === 1) {
+							menuObjects = menu.children;
+						}
 						tempMatrix.identity().extractRotation(ctrl.matrixWorld);
 						raycaster.ray.origin.setFromMatrixPosition(ctrl.matrixWorld);
 						raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
 
-						// Menu interaction
-						const intersects = raycaster.intersectObjects(menu.children);
-						if (intersects.length > 0) {
-							if (intersected[i] !== intersects[0].object) {
+						// Menu interaction (only for right controller)
+						if (menuObjects.length > 0) {
+							const intersects = raycaster.intersectObjects(menuObjects);
+							if (intersects.length > 0) {
+								if (intersected[i] !== intersects[0].object) {
+									if (intersected[i] && intersected[i].material.emissive)
+										intersected[i].material.emissive.set(0x000000);
+									intersected[i] = intersects[0].object;
+									if (intersected[i].material.emissive)
+										intersected[i].material.emissive.set(0x222222);
+								}
+								rays[i].material.color.set(0x00ff00);
+							} else {
 								if (intersected[i] && intersected[i].material.emissive)
 									intersected[i].material.emissive.set(0x000000);
-								intersected[i] = intersects[0].object;
-								if (intersected[i].material.emissive)
-									intersected[i].material.emissive.set(0x222222);
+								intersected[i] = null;
+								rays[i].material.color.set(0xffffff);
 							}
-							rays[i].material.color.set(0x00ff00);
-						} else {
-							if (intersected[i] && intersected[i].material.emissive)
-								intersected[i].material.emissive.set(0x000000);
-							intersected[i] = null;
-							rays[i].material.color.set(0xffffff);
 						}
 						// If grabbing, move and rotate cube with controller
 						if (grabbed[i]) {
