@@ -2,26 +2,13 @@
 <html lang="en">
 	<head>
 		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>WebXR Interactive Menu Example</title>
-		<style>
-			body {
-				margin: 0;
-				overflow: hidden;
-				/* background: #0a174e; */
-			}
-			#info {
-				position: absolute;
-				top: 10px;
-				left: 10px;
-				color: #fff;
-				background: rgba(0, 0, 0, 0.5);
-				padding: 10px 20px;
-				border-radius: 8px;
-				font-family: sans-serif;
-				z-index: 1;
-			}
-		</style>
+		<title>AR TEMPLATE</title>
+		<link rel="stylesheet" href="./style.css" />
+		<link rel="shortcut icon" type="image/png" href="./favicon.png" />
+	</head>
+	<body>
 		<script type="importmap">
 			{
 				"imports": {
@@ -30,233 +17,16 @@
 				}
 			}
 		</script>
-	</head>
-	<body>
 		<div id="info">
-			<b>WebXR Interactive Menu Demo</b><br />
-			<span
-				>Point your controller at a menu button and press trigger to change the
-				cube color.</span
-			>
+			<div class="inner">
+				<div class="line1">Jean<br />Pierre<br />Course</div>
+				<div class="line2">
+					<a href="https://threejs.org/docs/" target="_blank"
+						>Learn three.js by Examples<br />AR TEMPLATE</a
+					>
+				</div>
+			</div>
 		</div>
-		<script type="module">
-			import * as THREE from "three";
-			import { ARButton } from "three/addons/webxr/ARButton.js";
-
-			let camera, scene, renderer;
-			let controller;
-			let menu, cube;
-			let raycaster,
-				tempMatrix = new THREE.Matrix4();
-			let controllers = [];
-			let controllerGrips = [];
-			let rays = [];
-			let intersected = [null, null]; // Track intersected for both controllers
-			let grabbed = [false, false]; // Track if each controller is grabbing the cube
-			let grabbedOffset = [new THREE.Vector3(), new THREE.Vector3()];
-			let grabbedRotationOffset = [
-				new THREE.Quaternion(),
-				new THREE.Quaternion(),
-			];
-
-			init();
-			animate();
-
-			function init() {
-				scene = new THREE.Scene();
-				scene.background = new THREE.Color("yellow"); // dark blue
-				camera = new THREE.PerspectiveCamera(
-					70,
-					window.innerWidth / window.innerHeight,
-					0.01,
-					20
-				);
-
-				renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-				renderer.setSize(window.innerWidth, window.innerHeight);
-				renderer.xr.enabled = true;
-				document.body.appendChild(renderer.domElement);
-
-				document.body.appendChild(
-					ARButton.createButton(renderer, { requiredFeatures: ["hit-test"] })
-				);
-
-				// Add a cube to interact with
-				cube = new THREE.Mesh(
-					new THREE.BoxGeometry(0.2, 0.2, 0.2),
-					new THREE.MeshStandardMaterial({ color: 0x44aa88 })
-				);
-				cube.position.set(0, 0, -0.5);
-				scene.add(cube);
-
-				// Add light
-				scene.add(new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1));
-
-				// Controller setup for both hands
-				for (let i = 0; i < 2; i++) {
-					const ctrl = renderer.xr.getController(i);
-					const ray = new THREE.Line(
-						new THREE.BufferGeometry().setFromPoints([
-							new THREE.Vector3(0, 0, 0),
-							new THREE.Vector3(0, 0, -1),
-						]),
-						new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 2 })
-					);
-					ray.name = "ray";
-					ray.scale.z = 1.0;
-					ctrl.add(ray);
-					rays.push(ray);
-
-					ctrl.addEventListener("selectstart", (event) => onSelectStart(i));
-					ctrl.addEventListener("selectend", (event) => onSelectEnd(i));
-
-					controllers.push(ctrl);
-					scene.add(ctrl);
-				}
-				// Create a simple menu (plane with two buttons) and attach to right controller
-				menu = createMenu();
-				menu.position.set(0, 0.1, -0.2); // Offset in front of controller
-				controllers[1].add(menu); // Attach menu to right controller
-
-				// Raycaster for interaction
-				raycaster = new THREE.Raycaster();
-
-				window.addEventListener("resize", onWindowResize);
-			}
-
-			function createMenu() {
-				const group = new THREE.Group();
-
-				// Button 1
-				const btn1 = new THREE.Mesh(
-					new THREE.BoxGeometry(0.12, 0.04, 0.01),
-					new THREE.MeshBasicMaterial({ color: 0x007bff })
-				);
-				btn1.position.set(0, 0.03, 0);
-				btn1.userData = { action: "color1" };
-				group.add(btn1);
-
-				// Button 2
-				const btn2 = new THREE.Mesh(
-					new THREE.BoxGeometry(0.12, 0.04, 0.01),
-					new THREE.MeshBasicMaterial({ color: 0xff8800 })
-				);
-				btn2.position.set(0, -0.03, 0);
-				btn2.userData = { action: "color2" };
-				group.add(btn2);
-
-				return group;
-			}
-
-			function onSelectStart(index) {
-				scene.updateMatrixWorld(true); // Ensure world matrices are up to date
-				const ctrl = controllers[index];
-				tempMatrix.identity().extractRotation(ctrl.matrixWorld);
-				raycaster.ray.origin.setFromMatrixPosition(ctrl.matrixWorld);
-				raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
-				const cubeIntersects = raycaster.intersectObject(cube);
-				if (cubeIntersects.length > 0) {
-					grabbed[index] = true;
-					// Store offset between controller and cube in controller space
-					const ctrlInv = new THREE.Matrix4().copy(ctrl.matrixWorld).invert();
-					const cubeMatrix = new THREE.Matrix4().copy(cube.matrixWorld);
-					const offsetMatrix = new THREE.Matrix4().multiplyMatrices(
-						ctrlInv,
-						cubeMatrix
-					);
-					// Decompose offset
-					grabbedOffset[index].setFromMatrixPosition(offsetMatrix);
-					grabbedRotationOffset[index].setFromRotationMatrix(offsetMatrix);
-					return;
-				}
-				// Menu interaction: always check raycast at press for right controller
-				if (index === 1 && menu) {
-					const menuIntersects = raycaster.intersectObjects(menu.children);
-					if (menuIntersects.length > 0) {
-						const btn = menuIntersects[0].object;
-						if (btn.userData.action === "color1") {
-							cube.material.color.set(0x007bff);
-						} else if (btn.userData.action === "color2") {
-							cube.material.color.set(0xff8800);
-						}
-					}
-				}
-			}
-
-			function onSelectEnd(index) {
-				// Release cube if grabbing
-				grabbed[index] = false;
-			}
-
-			function onWindowResize() {
-				camera.aspect = window.innerWidth / window.innerHeight;
-				camera.updateProjectionMatrix();
-				renderer.setSize(window.innerWidth, window.innerHeight);
-			}
-
-			function animate() {
-				renderer.setAnimationLoop(render);
-			}
-
-			function render() {
-				scene.updateMatrixWorld(true); // Ensure world matrices are up to date
-				for (let i = 0; i < controllers.length; i++) {
-					const ctrl = controllers[i];
-					if (ctrl) {
-						// Raycast from controller to menu in controller's local space
-						let menuObjects = [];
-						if (i === 1) {
-							menuObjects = menu.children;
-						}
-						tempMatrix.identity().extractRotation(ctrl.matrixWorld);
-						raycaster.ray.origin.setFromMatrixPosition(ctrl.matrixWorld);
-						raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
-
-						// Menu interaction (only for right controller)
-						if (menuObjects.length > 0) {
-							const intersects = raycaster.intersectObjects(menuObjects);
-							if (intersects.length > 0) {
-								if (intersected[i] !== intersects[0].object) {
-									if (intersected[i] && intersected[i].material.emissive)
-										intersected[i].material.emissive.set(0x000000);
-									intersected[i] = intersects[0].object;
-									if (intersected[i].material.emissive)
-										intersected[i].material.emissive.set(0x222222);
-								}
-								rays[i].material.color.set(0x00ff00);
-							} else {
-								if (intersected[i] && intersected[i].material.emissive)
-									intersected[i].material.emissive.set(0x000000);
-								intersected[i] = null;
-								rays[i].material.color.set(0xffffff);
-							}
-						}
-						// If grabbing, move and rotate cube with controller
-						if (grabbed[i]) {
-							// Compose new matrix for cube: controller's world matrix * offset
-							const ctrlMatrix = new THREE.Matrix4().copy(ctrl.matrixWorld);
-							const offsetMatrix = new THREE.Matrix4().compose(
-								grabbedOffset[i],
-								grabbedRotationOffset[i],
-								new THREE.Vector3(1, 1, 1)
-							);
-							const newMatrix = new THREE.Matrix4().multiplyMatrices(
-								ctrlMatrix,
-								offsetMatrix
-							);
-							// Decompose to position and quaternion
-							const newPos = new THREE.Vector3();
-							const newQuat = new THREE.Quaternion();
-							const newScale = new THREE.Vector3();
-							newMatrix.decompose(newPos, newQuat, newScale);
-							cube.position.copy(newPos);
-							cube.quaternion.copy(newQuat);
-						}
-					}
-				}
-
-				renderer.render(scene, camera);
-			}
-		</script>
+		<script src="./js/script.js" type="module"></script>
 	</body>
 </html>
