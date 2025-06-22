@@ -52,13 +52,15 @@
 			let controllerGrips = [];
 			let rays = [];
 			let intersected = [null, null]; // Track intersected for both controllers
+			let grabbed = [false, false]; // Track if each controller is grabbing the cube
+			let grabbedOffset = [new THREE.Vector3(), new THREE.Vector3()];
 
 			init();
 			animate();
 
 			function init() {
 				scene = new THREE.Scene();
-				scene.background = new THREE.Color("red"); // dark blue
+				scene.background = new THREE.Color("green"); // dark blue
 				camera = new THREE.PerspectiveCamera(
 					70,
 					window.innerWidth / window.innerHeight,
@@ -146,6 +148,25 @@
 			}
 
 			function onSelectStart(index) {
+				// Grab cube if pointing at it
+				const ctrl = controllers[index];
+				tempMatrix.identity().extractRotation(ctrl.matrixWorld);
+				raycaster.ray.origin.setFromMatrixPosition(ctrl.matrixWorld);
+				raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
+				const cubeIntersects = raycaster.intersectObject(cube);
+				if (cubeIntersects.length > 0) {
+					grabbed[index] = true;
+					// Store offset between controller and cube
+					const ctrlPos = new THREE.Vector3().setFromMatrixPosition(
+						ctrl.matrixWorld
+					);
+					grabbedOffset[index] = new THREE.Vector3().subVectors(
+						cube.position,
+						ctrlPos
+					);
+					return;
+				}
+				// Otherwise, menu interaction
 				if (intersected[index]) {
 					if (intersected[index].userData.action === "color1") {
 						cube.material.color.set(0x007bff);
@@ -156,7 +177,8 @@
 			}
 
 			function onSelectEnd(index) {
-				// Optional: visual feedback
+				// Release cube if grabbing
+				grabbed[index] = false;
 			}
 
 			function onWindowResize() {
@@ -195,6 +217,13 @@
 							intersected[i] = null;
 							rays[i].material.color.set(0xffffff);
 						}
+					}
+					// If grabbing, move cube with controller
+					if (grabbed[i]) {
+						const ctrlPos = new THREE.Vector3().setFromMatrixPosition(
+							ctrl.matrixWorld
+						);
+						cube.position.copy(ctrlPos.clone().add(grabbedOffset[i]));
 					}
 				}
 
