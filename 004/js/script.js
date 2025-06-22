@@ -77,9 +77,9 @@ function init() {
     scene.add(cube);
 
     // XR Controllers
-    leftController = renderer.xr.getControllerGrip(1);
+    leftController = renderer.xr.getController(0);
     scene.add(leftController);
-    rightController = renderer.xr.getController(0);
+    rightController = renderer.xr.getController(1);
     scene.add(rightController);
 
     // Create and attach menu to left controller
