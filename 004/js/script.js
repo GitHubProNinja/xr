@@ -19,7 +19,7 @@ init();
 
 function init() {
     scene = new THREE.Scene();
-    scene.background = new THREE.Color('brown');
+    scene.background = new THREE.Color('navy');
     ambientLight = new THREE.AmbientLight(0xffffff);
     scene.add(ambientLight);
     dirLight = new THREE.DirectionalLight(0xffffff, 5);
@@ -71,6 +71,12 @@ function init() {
 }
 
 function animate() {
+    // Call all registered highlight/update functions (e.g., menu highlight)
+    if (window._xrMenuAnimates) {
+        for (const fn of window._xrMenuAnimates) {
+            fn();
+        }
+    }
     renderer.render(scene, camera);
     if (stats) stats.update();
 }
