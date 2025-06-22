@@ -168,12 +168,16 @@
 					grabbedRotationOffset[index].setFromRotationMatrix(offsetMatrix);
 					return;
 				}
-				// Otherwise, menu interaction
-				if (intersected[index]) {
-					if (intersected[index].userData.action === "color1") {
-						cube.material.color.set(0x007bff);
-					} else if (intersected[index].userData.action === "color2") {
-						cube.material.color.set(0xff8800);
+				// Menu interaction: always check raycast at press for right controller
+				if (index === 1 && menu) {
+					const menuIntersects = raycaster.intersectObjects(menu.children);
+					if (menuIntersects.length > 0) {
+						const btn = menuIntersects[0].object;
+						if (btn.userData.action === "color1") {
+							cube.material.color.set(0x007bff);
+						} else if (btn.userData.action === "color2") {
+							cube.material.color.set(0xff8800);
+						}
 					}
 				}
 			}
