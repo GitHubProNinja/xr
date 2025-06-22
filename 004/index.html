@@ -150,7 +150,6 @@
 			}
 
 			function onSelectStart(index) {
-				// Grab cube if pointing at it
 				const ctrl = controllers[index];
 				tempMatrix.identity().extractRotation(ctrl.matrixWorld);
 				raycaster.ray.origin.setFromMatrixPosition(ctrl.matrixWorld);
@@ -158,21 +157,16 @@
 				const cubeIntersects = raycaster.intersectObject(cube);
 				if (cubeIntersects.length > 0) {
 					grabbed[index] = true;
-					// Store offset between controller and cube
-					const ctrlPos = new THREE.Vector3().setFromMatrixPosition(
-						ctrl.matrixWorld
+					// Store offset between controller and cube in controller space
+					const ctrlInv = new THREE.Matrix4().copy(ctrl.matrixWorld).invert();
+					const cubeMatrix = new THREE.Matrix4().copy(cube.matrixWorld);
+					const offsetMatrix = new THREE.Matrix4().multiplyMatrices(
+						ctrlInv,
+						cubeMatrix
 					);
-					grabbedOffset[index] = new THREE.Vector3().subVectors(
-						cube.position,
-						ctrlPos
-					);
-					// Store rotation offset
-					const ctrlQuat = new THREE.Quaternion().setFromRotationMatrix(
-						ctrl.matrixWorld
-					);
-					grabbedRotationOffset[index] = cube.quaternion
-						.clone()
-						.multiply(ctrlQuat.clone().invert());
+					// Decompose offset
+					grabbedOffset[index].setFromMatrixPosition(offsetMatrix);
+					grabbedRotationOffset[index].setFromRotationMatrix(offsetMatrix);
 					return;
 				}
 				// Otherwise, menu interaction
@@ -228,16 +222,24 @@
 						}
 						// If grabbing, move and rotate cube with controller
 						if (grabbed[i]) {
-							const ctrlPos = new THREE.Vector3().setFromMatrixPosition(
-								ctrl.matrixWorld
+							// Compose new matrix for cube: controller's world matrix * offset
+							const ctrlMatrix = new THREE.Matrix4().copy(ctrl.matrixWorld);
+							const offsetMatrix = new THREE.Matrix4().compose(
+								grabbedOffset[i],
+								grabbedRotationOffset[i],
+								new THREE.Vector3(1, 1, 1)
 							);
-							cube.position.copy(ctrlPos.clone().add(grabbedOffset[i]));
-							const ctrlQuat = new THREE.Quaternion().setFromRotationMatrix(
-								ctrl.matrixWorld
+							const newMatrix = new THREE.Matrix4().multiplyMatrices(
+								ctrlMatrix,
+								offsetMatrix
 							);
-							cube.quaternion.copy(
-								ctrlQuat.clone().multiply(grabbedRotationOffset[i])
-							);
+							// Decompose to position and quaternion
+							const newPos = new THREE.Vector3();
+							const newQuat = new THREE.Quaternion();
+							const newScale = new THREE.Vector3();
+							newMatrix.decompose(newPos, newQuat, newScale);
+							cube.position.copy(newPos);
+							cube.quaternion.copy(newQuat);
 						}
 					}
 				}
