@@ -21,7 +21,7 @@ init();
 
 function init() {
     scene = new THREE.Scene();
-    scene.background = new THREE.Color('green');
+    scene.background = new THREE.Color('navy');
     ambientLight = new THREE.AmbientLight(0xffffff);
     scene.add(ambientLight);
     dirLight = new THREE.DirectionalLight(0xffffff, 5);

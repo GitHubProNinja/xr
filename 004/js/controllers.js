@@ -1,38 +1,30 @@
 import * as THREE from 'three';
 import { setCubeColor } from './cube.js';
 
-function createReticle(rightController) {
-    // Small white dot at the end of the pointer line
+function createReticle(scene) {
     const reticle = new THREE.Mesh(
         new THREE.SphereGeometry(0.012, 16, 16),
         new THREE.MeshStandardMaterial({ color: 0xffffff })
     );
     reticle.visible = false;
-    rightController.add(reticle);
+    scene.add(reticle);
     return reticle;
 }
 
 function createPointerLine(rightController) {
-    // 1 meter long, semi-transparent, matches three-mesh-ui
     const pointerGeom = new THREE.BufferGeometry().setFromPoints([
         new THREE.Vector3(0, 0, 0),
-        new THREE.Vector3(0, 0, -1)
+        new THREE.Vector3(0, 0, -0.25)
     ]);
     const pointerLine = new THREE.Line(
         pointerGeom,
-        new THREE.LineBasicMaterial({
-            color: 0xffffff,
-            linewidth: 2, // Note: linewidth is ignored in most browsers
-            transparent: true,
-            opacity: 0.5
-        })
+        new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 4 })
     );
-    pointerLine.frustumCulled = false;
     rightController.add(pointerLine);
     return pointerLine;
 }
 
-function updateMenuHighlight({ rightController, menu, reticle, tempMatrix, raycaster, intersectedRef, pointerLine }) {
+function updateMenuHighlight({ rightController, menu, reticle, tempMatrix, raycaster, intersectedRef }) {
     let reticleVisible = false;
     tempMatrix.identity().extractRotation(rightController.matrixWorld);
     raycaster.ray.origin.setFromMatrixPosition(rightController.matrixWorld);
@@ -49,11 +41,9 @@ function updateMenuHighlight({ rightController, menu, reticle, tempMatrix, rayca
             intersectedRef.current.material.color.set(intersectedRef.current.userData.neon);
             intersectedRef.current.scale.set(1.2, 1.2, 1.2);
         }
-        // Move reticle (dot) to intersection point, show it
         reticle.position.copy(hit.point);
         reticle.visible = true;
         reticleVisible = true;
-        // Pointer line is always 1 meter, do not scale
     } else {
         if (intersectedRef.current) {
             intersectedRef.current.material.color.set(intersectedRef.current.userData.dull);
@@ -82,13 +72,19 @@ export function setupControllers({ scene, leftController, rightController, menu,
         menu.position.set(0, 0.1, -0.15);
     }
 
+    const reticle = createReticle(scene);
     const pointerLine = createPointerLine(rightController);
-    const reticle = createReticle(rightController);
 
     // Bind the highlight and selection logic
-    const highlightParams = { rightController, menu, reticle, tempMatrix, raycaster, intersectedRef, pointerLine };
+    const highlightParams = { rightController, menu, reticle, tempMatrix, raycaster, intersectedRef };
     const highlightFn = () => updateMenuHighlight(highlightParams);
     rightController.addEventListener('selectstart', () => onSelectStart({ intersectedRef, cube }));
+
+    // Animation loop hook (no longer needed, handled directly in script.js)
+    // if (typeof window !== 'undefined') {
+    //     if (!window._xrMenuAnimates) window._xrMenuAnimates = [];
+    //     window._xrMenuAnimates.push(highlightFn);
+    // }
 
     return {
         leftController,
