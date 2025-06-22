@@ -23,7 +23,7 @@ function init() {
 
     scene = new THREE.Scene();
     // scene.background = new THREE.Color(0x001951);
-    scene.background = new THREE.Color('gray');
+    scene.background = new THREE.Color('navy');
 
     ambientLight = new THREE.AmbientLight(0xffffff);
     scene.add(ambientLight);
@@ -93,7 +93,7 @@ function init() {
     // Create reticle (small sphere) for menu intersection
     reticle = new THREE.Mesh(
         new THREE.SphereGeometry(0.012, 16, 16),
-        new THREE.MeshBasicMaterial({ color: 0xffffff, emissive: 0xffff00 })
+        new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffff00 })
     );
     reticle.visible = false;
     scene.add(reticle);
@@ -127,10 +127,12 @@ function animate() {
             const hit = intersects[0];
             if (intersected !== hit.object) {
                 if (intersected) {
+                    intersected.material.emissive.set(0x000000);
                     intersected.material.emissiveIntensity = 1;
                     intersected.scale.set(1, 1, 1);
                 }
                 intersected = hit.object;
+                intersected.material.emissive.set(intersected.material.color.getHex());
                 intersected.material.emissiveIntensity = 3;
                 intersected.scale.set(1.2, 1.2, 1.2);
             }
@@ -140,6 +142,7 @@ function animate() {
             reticleVisible = true;
         } else {
             if (intersected) {
+                intersected.material.emissive.set(0x000000);
                 intersected.material.emissiveIntensity = 1;
                 intersected.scale.set(1, 1, 1);
             }
@@ -163,7 +166,7 @@ function createColorMenu() {
     for (let i = 0; i < neonColors.length; i++) {
         const btn = new THREE.Mesh(
             new THREE.BoxGeometry(0.08, 0.08, 0.02),
-            new THREE.MeshStandardMaterial({ color: neonColors[i], emissive: neonColors[i], emissiveIntensity: 1 })
+            new THREE.MeshStandardMaterial({ color: neonColors[i], emissive: 0x000000, emissiveIntensity: 1 })
         );
         btn.position.set(0, 0.18 - i * 0.09, 0);
         btn.userData = { color: neonColors[i] };
