@@ -3,7 +3,7 @@ import { VRButton } from 'three/addons/webxr/VRButton.js';
 import { BoxLineGeometry } from 'three/addons/geometries/BoxLineGeometry.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-import * as ThreeMeshUI from './build/three-mesh-ui.js';
+import ThreeMeshUI from './build/three-mesh-ui.module.js';
 import VRControl from './utils/VRControl.js';
 import ShadowedLight from './utils/ShadowedLight.js';
 
