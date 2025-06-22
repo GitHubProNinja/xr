@@ -54,13 +54,17 @@
 			let intersected = [null, null]; // Track intersected for both controllers
 			let grabbed = [false, false]; // Track if each controller is grabbing the cube
 			let grabbedOffset = [new THREE.Vector3(), new THREE.Vector3()];
+			let grabbedRotationOffset = [
+				new THREE.Quaternion(),
+				new THREE.Quaternion(),
+			];
 
 			init();
 			animate();
 
 			function init() {
 				scene = new THREE.Scene();
-				scene.background = new THREE.Color("green"); // dark blue
+				scene.background = new THREE.Color("blue"); // dark blue
 				camera = new THREE.PerspectiveCamera(
 					70,
 					window.innerWidth / window.innerHeight,
@@ -90,7 +94,8 @@
 
 				// Create a simple menu (plane with two buttons)
 				menu = createMenu();
-				menu.position.set(0, 0.1, -0.2); // Offset in front of controller
+				menu.position.set(0, 0.1, -0.6); // Place menu in front of user in world space
+				scene.add(menu);
 
 				// Controller setup for both hands
 				for (let i = 0; i < 2; i++) {
@@ -113,9 +118,6 @@
 					controllers.push(ctrl);
 					scene.add(ctrl);
 				}
-
-				// Attach menu to right controller by default (can be changed)
-				controllers[1].add(menu);
 
 				// Raycaster for interaction
 				raycaster = new THREE.Raycaster();
@@ -164,6 +166,13 @@
 						cube.position,
 						ctrlPos
 					);
+					// Store rotation offset
+					const ctrlQuat = new THREE.Quaternion().setFromRotationMatrix(
+						ctrl.matrixWorld
+					);
+					grabbedRotationOffset[index] = cube.quaternion
+						.clone()
+						.multiply(ctrlQuat.clone().invert());
 					return;
 				}
 				// Otherwise, menu interaction
@@ -194,12 +203,13 @@
 			function render() {
 				for (let i = 0; i < controllers.length; i++) {
 					const ctrl = controllers[i];
-					if (ctrl && menu) {
-						// Raycast from controller to menu
+					if (ctrl) {
+						// Raycast from controller to menu and cube in world space
 						tempMatrix.identity().extractRotation(ctrl.matrixWorld);
 						raycaster.ray.origin.setFromMatrixPosition(ctrl.matrixWorld);
 						raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
 
+						// Menu interaction
 						const intersects = raycaster.intersectObjects(menu.children);
 						if (intersects.length > 0) {
 							if (intersected[i] !== intersects[0].object) {
@@ -209,7 +219,6 @@
 								if (intersected[i].material.emissive)
 									intersected[i].material.emissive.set(0x222222);
 							}
-							// Make ray colored when pointing at a button
 							rays[i].material.color.set(0x00ff00);
 						} else {
 							if (intersected[i] && intersected[i].material.emissive)
@@ -217,13 +226,19 @@
 							intersected[i] = null;
 							rays[i].material.color.set(0xffffff);
 						}
-					}
-					// If grabbing, move cube with controller
-					if (grabbed[i]) {
-						const ctrlPos = new THREE.Vector3().setFromMatrixPosition(
-							ctrl.matrixWorld
-						);
-						cube.position.copy(ctrlPos.clone().add(grabbedOffset[i]));
+						// If grabbing, move and rotate cube with controller
+						if (grabbed[i]) {
+							const ctrlPos = new THREE.Vector3().setFromMatrixPosition(
+								ctrl.matrixWorld
+							);
+							cube.position.copy(ctrlPos.clone().add(grabbedOffset[i]));
+							const ctrlQuat = new THREE.Quaternion().setFromRotationMatrix(
+								ctrl.matrixWorld
+							);
+							cube.quaternion.copy(
+								ctrlQuat.clone().multiply(grabbedRotationOffset[i])
+							);
+						}
 					}
 				}
 
