@@ -1,13 +1,14 @@
 import * as THREE from 'three';
 import { setCubeColor } from './cube.js';
 
-function createReticle(scene) {
+function createReticle(rightController) {
+    // Small white dot at the end of the pointer line
     const reticle = new THREE.Mesh(
         new THREE.SphereGeometry(0.012, 16, 16),
         new THREE.MeshStandardMaterial({ color: 0xffffff })
     );
     reticle.visible = false;
-    scene.add(reticle);
+    rightController.add(reticle);
     return reticle;
 }
 
@@ -48,11 +49,11 @@ function updateMenuHighlight({ rightController, menu, reticle, tempMatrix, rayca
             intersectedRef.current.material.color.set(intersectedRef.current.userData.neon);
             intersectedRef.current.scale.set(1.2, 1.2, 1.2);
         }
+        // Move reticle (dot) to intersection point, show it
         reticle.position.copy(hit.point);
         reticle.visible = true;
         reticleVisible = true;
-        // Set pointer line length to intersection distance
-        if (pointerLine) pointerLine.scale.z = hit.distance;
+        // Pointer line is always 1 meter, do not scale
     } else {
         if (intersectedRef.current) {
             intersectedRef.current.material.color.set(intersectedRef.current.userData.dull);
@@ -60,8 +61,6 @@ function updateMenuHighlight({ rightController, menu, reticle, tempMatrix, rayca
         }
         intersectedRef.current = null;
         reticle.visible = false;
-        // Default pointer line length
-        if (pointerLine) pointerLine.scale.z = 1;
     }
     if (!reticleVisible) reticle.visible = false;
 }
@@ -83,8 +82,8 @@ export function setupControllers({ scene, leftController, rightController, menu,
         menu.position.set(0, 0.1, -0.15);
     }
 
-    const reticle = createReticle(scene);
     const pointerLine = createPointerLine(rightController);
+    const reticle = createReticle(rightController);
 
     // Bind the highlight and selection logic
     const highlightParams = { rightController, menu, reticle, tempMatrix, raycaster, intersectedRef, pointerLine };
