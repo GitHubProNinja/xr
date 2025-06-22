@@ -12,19 +12,26 @@ function createReticle(scene) {
 }
 
 function createPointerLine(rightController) {
+    // 1 meter long, semi-transparent, matches three-mesh-ui
     const pointerGeom = new THREE.BufferGeometry().setFromPoints([
         new THREE.Vector3(0, 0, 0),
-        new THREE.Vector3(0, 0, -0.25)
+        new THREE.Vector3(0, 0, -1)
     ]);
     const pointerLine = new THREE.Line(
         pointerGeom,
-        new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 4 })
+        new THREE.LineBasicMaterial({
+            color: 0xffffff,
+            linewidth: 2, // Note: linewidth is ignored in most browsers
+            transparent: true,
+            opacity: 0.5
+        })
     );
+    pointerLine.frustumCulled = false;
     rightController.add(pointerLine);
     return pointerLine;
 }
 
-function updateMenuHighlight({ rightController, menu, reticle, tempMatrix, raycaster, intersectedRef }) {
+function updateMenuHighlight({ rightController, menu, reticle, tempMatrix, raycaster, intersectedRef, pointerLine }) {
     let reticleVisible = false;
     tempMatrix.identity().extractRotation(rightController.matrixWorld);
     raycaster.ray.origin.setFromMatrixPosition(rightController.matrixWorld);
@@ -44,6 +51,8 @@ function updateMenuHighlight({ rightController, menu, reticle, tempMatrix, rayca
         reticle.position.copy(hit.point);
         reticle.visible = true;
         reticleVisible = true;
+        // Set pointer line length to intersection distance
+        if (pointerLine) pointerLine.scale.z = hit.distance;
     } else {
         if (intersectedRef.current) {
             intersectedRef.current.material.color.set(intersectedRef.current.userData.dull);
@@ -51,6 +60,8 @@ function updateMenuHighlight({ rightController, menu, reticle, tempMatrix, rayca
         }
         intersectedRef.current = null;
         reticle.visible = false;
+        // Default pointer line length
+        if (pointerLine) pointerLine.scale.z = 1;
     }
     if (!reticleVisible) reticle.visible = false;
 }
@@ -76,15 +87,9 @@ export function setupControllers({ scene, leftController, rightController, menu,
     const pointerLine = createPointerLine(rightController);
 
     // Bind the highlight and selection logic
-    const highlightParams = { rightController, menu, reticle, tempMatrix, raycaster, intersectedRef };
+    const highlightParams = { rightController, menu, reticle, tempMatrix, raycaster, intersectedRef, pointerLine };
     const highlightFn = () => updateMenuHighlight(highlightParams);
     rightController.addEventListener('selectstart', () => onSelectStart({ intersectedRef, cube }));
-
-    // Animation loop hook (no longer needed, handled directly in script.js)
-    // if (typeof window !== 'undefined') {
-    //     if (!window._xrMenuAnimates) window._xrMenuAnimates = [];
-    //     window._xrMenuAnimates.push(highlightFn);
-    // }
 
     return {
         leftController,
