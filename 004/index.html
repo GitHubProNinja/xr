@@ -48,14 +48,17 @@
 			let menu, cube;
 			let raycaster,
 				tempMatrix = new THREE.Matrix4();
-			let intersected = null;
+			let controllers = [];
+			let controllerGrips = [];
+			let rays = [];
+			let intersected = [null, null]; // Track intersected for both controllers
 
 			init();
 			animate();
 
 			function init() {
 				scene = new THREE.Scene();
-				scene.background = new THREE.Color(0x0a174e); // dark blue
+				scene.background = new THREE.Color("red"); // dark blue
 				camera = new THREE.PerspectiveCamera(
 					70,
 					window.innerWidth / window.innerHeight,
@@ -87,17 +90,33 @@
 				menu = createMenu();
 				menu.position.set(0, 0.1, -0.2); // Offset in front of controller
 
-				// Controller
-				controller = renderer.xr.getController(0);
-				controller.add(menu);
-				scene.add(controller);
+				// Controller setup for both hands
+				for (let i = 0; i < 2; i++) {
+					const ctrl = renderer.xr.getController(i);
+					const ray = new THREE.Line(
+						new THREE.BufferGeometry().setFromPoints([
+							new THREE.Vector3(0, 0, 0),
+							new THREE.Vector3(0, 0, -1),
+						]),
+						new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 2 })
+					);
+					ray.name = "ray";
+					ray.scale.z = 1.0;
+					ctrl.add(ray);
+					rays.push(ray);
+
+					ctrl.addEventListener("selectstart", (event) => onSelectStart(i));
+					ctrl.addEventListener("selectend", (event) => onSelectEnd(i));
+
+					controllers.push(ctrl);
+					scene.add(ctrl);
+				}
+
+				// Attach menu to right controller by default (can be changed)
+				controllers[1].add(menu);
 
 				// Raycaster for interaction
 				raycaster = new THREE.Raycaster();
-
-				// Listen for select events
-				controller.addEventListener("selectstart", onSelectStart);
-				controller.addEventListener("selectend", onSelectEnd);
 
 				window.addEventListener("resize", onWindowResize);
 			}
@@ -126,17 +145,17 @@
 				return group;
 			}
 
-			function onSelectStart() {
-				if (intersected) {
-					if (intersected.userData.action === "color1") {
+			function onSelectStart(index) {
+				if (intersected[index]) {
+					if (intersected[index].userData.action === "color1") {
 						cube.material.color.set(0x007bff);
-					} else if (intersected.userData.action === "color2") {
+					} else if (intersected[index].userData.action === "color2") {
 						cube.material.color.set(0xff8800);
 					}
 				}
 			}
 
-			function onSelectEnd() {
+			function onSelectEnd(index) {
 				// Optional: visual feedback
 			}
 
@@ -151,24 +170,31 @@
 			}
 
 			function render() {
-				// Raycast from controller to menu
-				if (controller && menu) {
-					tempMatrix.identity().extractRotation(controller.matrixWorld);
-					raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
-					raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
+				for (let i = 0; i < controllers.length; i++) {
+					const ctrl = controllers[i];
+					if (ctrl && menu) {
+						// Raycast from controller to menu
+						tempMatrix.identity().extractRotation(ctrl.matrixWorld);
+						raycaster.ray.origin.setFromMatrixPosition(ctrl.matrixWorld);
+						raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
 
-					const intersects = raycaster.intersectObjects(menu.children);
-					if (intersects.length > 0) {
-						if (intersected !== intersects[0].object) {
-							if (intersected) intersected.material.emissive?.set(0x000000);
-							intersected = intersects[0].object;
-							if (intersected.material.emissive)
-								intersected.material.emissive.set(0x222222);
+						const intersects = raycaster.intersectObjects(menu.children);
+						if (intersects.length > 0) {
+							if (intersected[i] !== intersects[0].object) {
+								if (intersected[i] && intersected[i].material.emissive)
+									intersected[i].material.emissive.set(0x000000);
+								intersected[i] = intersects[0].object;
+								if (intersected[i].material.emissive)
+									intersected[i].material.emissive.set(0x222222);
+							}
+							// Make ray colored when pointing at a button
+							rays[i].material.color.set(0x00ff00);
+						} else {
+							if (intersected[i] && intersected[i].material.emissive)
+								intersected[i].material.emissive.set(0x000000);
+							intersected[i] = null;
+							rays[i].material.color.set(0xffffff);
 						}
-					} else {
-						if (intersected && intersected.material.emissive)
-							intersected.material.emissive.set(0x000000);
-						intersected = null;
 					}
 				}
 
