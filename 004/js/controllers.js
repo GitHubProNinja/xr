@@ -80,11 +80,11 @@ export function setupControllers({ scene, leftController, rightController, menu,
     const highlightFn = () => updateMenuHighlight(highlightParams);
     rightController.addEventListener('selectstart', () => onSelectStart({ intersectedRef, cube }));
 
-    // Animation loop hook
-    if (typeof window !== 'undefined') {
-        if (!window._xrMenuAnimates) window._xrMenuAnimates = [];
-        window._xrMenuAnimates.push(highlightFn);
-    }
+    // Animation loop hook (no longer needed, handled directly in script.js)
+    // if (typeof window !== 'undefined') {
+    //     if (!window._xrMenuAnimates) window._xrMenuAnimates = [];
+    //     window._xrMenuAnimates.push(highlightFn);
+    // }
 
     return {
         leftController,

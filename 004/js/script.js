@@ -15,6 +15,8 @@ let cube;
 let leftController, rightController;
 let menu;
 
+let updateMenuHighlightFn;
+
 init();
 
 function init() {
@@ -58,7 +60,7 @@ function init() {
     menu = createColorMenu();
     menu.position.set(0, 0.1, -0.15);
     leftController.add(menu);
-    setupControllers({
+    const controllersResult = setupControllers({
         scene,
         leftController,
         rightController,
@@ -66,16 +68,14 @@ function init() {
         cube,
         setCubeColor
     });
+    updateMenuHighlightFn = controllersResult.updateMenuHighlight;
     window.addEventListener('resize', onWindowResize);
     renderer.setAnimationLoop(animate);
 }
 
 function animate() {
-    // Call all registered highlight/update functions (e.g., menu highlight)
-    if (window._xrMenuAnimates) {
-        for (const fn of window._xrMenuAnimates) {
-            fn();
-        }
+    if (typeof updateMenuHighlightFn === 'function') {
+        updateMenuHighlightFn();
     }
     renderer.render(scene, camera);
     if (stats) stats.update();
