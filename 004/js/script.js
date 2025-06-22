@@ -12,6 +12,7 @@ let cube;
 let leftController, rightController;
 let menu, raycaster = new THREE.Raycaster(), tempMatrix = new THREE.Matrix4();
 let intersected = null;
+let reticle = null;
 const neonColors = [0x39ff14, 0xff073a, 0x00f0ff, 0xfffb00, 0xff00ea]; // neon green, red, blue, yellow, magenta
 
 init();
@@ -87,6 +88,14 @@ function init() {
     menu.position.set(0, 0.1, -0.15);
     leftController.add(menu);
 
+    // Create reticle (small sphere) for menu intersection
+    reticle = new THREE.Mesh(
+        new THREE.SphereGeometry(0.012, 16, 16),
+        new THREE.MeshBasicMaterial({ color: 0xffffff, emissive: 0xffff00 })
+    );
+    reticle.visible = false;
+    scene.add(reticle);
+
     // Raycaster for right controller
     rightController.addEventListener('selectstart', onSelectStart);
     window.addEventListener('resize', onWindowResize);
@@ -94,6 +103,7 @@ function init() {
 }
 
 function animate() {
+    let reticleVisible = false;
     // Raycast from right controller to menu
     if (rightController && menu) {
         tempMatrix.identity().extractRotation(rightController.matrixWorld);
@@ -101,16 +111,30 @@ function animate() {
         raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
         const intersects = raycaster.intersectObjects(menu.children);
         if (intersects.length > 0) {
-            if (intersected !== intersects[0].object) {
-                if (intersected) intersected.material.emissiveIntensity = 1;
-                intersected = intersects[0].object;
-                intersected.material.emissiveIntensity = 2.5;
+            const hit = intersects[0];
+            if (intersected !== hit.object) {
+                if (intersected) {
+                    intersected.material.emissiveIntensity = 1;
+                    intersected.scale.set(1, 1, 1);
+                }
+                intersected = hit.object;
+                intersected.material.emissiveIntensity = 3;
+                intersected.scale.set(1.2, 1.2, 1.2);
             }
+            // Show reticle at intersection point
+            reticle.position.copy(hit.point);
+            reticle.visible = true;
+            reticleVisible = true;
         } else {
-            if (intersected) intersected.material.emissiveIntensity = 1;
+            if (intersected) {
+                intersected.material.emissiveIntensity = 1;
+                intersected.scale.set(1, 1, 1);
+            }
             intersected = null;
+            reticle.visible = false;
         }
     }
+    if (!reticleVisible) reticle.visible = false;
     renderer.render(scene, camera);
     if (stats) stats.update();
 }
