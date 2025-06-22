@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>WebXR Interactive Menu Example</title>
+		<style>
+			body {
+				margin: 0;
+				overflow: hidden;
+				/* background: #0a174e; */
+			}
+			#info {
+				position: absolute;
+				top: 10px;
+				left: 10px;
+				color: #fff;
+				background: rgba(0, 0, 0, 0.5);
+				padding: 10px 20px;
+				border-radius: 8px;
+				font-family: sans-serif;
+				z-index: 1;
+			}
+		</style>
+		<script type="importmap">
+			{
+				"imports": {
+					"three": "https://unpkg.com/three@0.177.0/build/three.module.js",
+					"three/addons/": "https://unpkg.com/three@0.177.0/examples/jsm/"
+				}
+			}
+		</script>
+	</head>
+	<body>
+		<div id="info">
+			<b>WebXR Interactive Menu Demo</b><br />
+			<span
+				>Point your controller at a menu button and press trigger to change the
+				cube color.</span
+			>
+		</div>
+		<script type="module">
+			import * as THREE from "three";
+			import { ARButton } from "three/addons/webxr/ARButton.js";
+
+			let camera, scene, renderer;
+			let controller;
+			let menu, cube;
+			let raycaster,
+				tempMatrix = new THREE.Matrix4();
+			let intersected = null;
+
+			init();
+			animate();
+
+			function init() {
+				scene = new THREE.Scene();
+				scene.background = new THREE.Color(0x0a174e); // dark blue
+				camera = new THREE.PerspectiveCamera(
+					70,
+					window.innerWidth / window.innerHeight,
+					0.01,
+					20
+				);
+
+				renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+				renderer.setSize(window.innerWidth, window.innerHeight);
+				renderer.xr.enabled = true;
+				document.body.appendChild(renderer.domElement);
+
+				document.body.appendChild(
+					ARButton.createButton(renderer, { requiredFeatures: ["hit-test"] })
+				);
+
+				// Add a cube to interact with
+				cube = new THREE.Mesh(
+					new THREE.BoxGeometry(0.2, 0.2, 0.2),
+					new THREE.MeshStandardMaterial({ color: 0x44aa88 })
+				);
+				cube.position.set(0, 0, -0.5);
+				scene.add(cube);
+
+				// Add light
+				scene.add(new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1));
+
+				// Create a simple menu (plane with two buttons)
+				menu = createMenu();
+				menu.position.set(0, 0.1, -0.2); // Offset in front of controller
+
+				// Controller
+				controller = renderer.xr.getController(0);
+				controller.add(menu);
+				scene.add(controller);
+
+				// Raycaster for interaction
+				raycaster = new THREE.Raycaster();
+
+				// Listen for select events
+				controller.addEventListener("selectstart", onSelectStart);
+				controller.addEventListener("selectend", onSelectEnd);
+
+				window.addEventListener("resize", onWindowResize);
+			}
+
+			function createMenu() {
+				const group = new THREE.Group();
+
+				// Button 1
+				const btn1 = new THREE.Mesh(
+					new THREE.BoxGeometry(0.12, 0.04, 0.01),
+					new THREE.MeshBasicMaterial({ color: 0x007bff })
+				);
+				btn1.position.set(0, 0.03, 0);
+				btn1.userData = { action: "color1" };
+				group.add(btn1);
+
+				// Button 2
+				const btn2 = new THREE.Mesh(
+					new THREE.BoxGeometry(0.12, 0.04, 0.01),
+					new THREE.MeshBasicMaterial({ color: 0xff8800 })
+				);
+				btn2.position.set(0, -0.03, 0);
+				btn2.userData = { action: "color2" };
+				group.add(btn2);
+
+				return group;
+			}
+
+			function onSelectStart() {
+				if (intersected) {
+					if (intersected.userData.action === "color1") {
+						cube.material.color.set(0x007bff);
+					} else if (intersected.userData.action === "color2") {
+						cube.material.color.set(0xff8800);
+					}
+				}
+			}
+
+			function onSelectEnd() {
+				// Optional: visual feedback
+			}
+
+			function onWindowResize() {
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+				renderer.setSize(window.innerWidth, window.innerHeight);
+			}
+
+			function animate() {
+				renderer.setAnimationLoop(render);
+			}
+
+			function render() {
+				// Raycast from controller to menu
+				if (controller && menu) {
+					tempMatrix.identity().extractRotation(controller.matrixWorld);
+					raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
+					raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
+
+					const intersects = raycaster.intersectObjects(menu.children);
+					if (intersects.length > 0) {
+						if (intersected !== intersects[0].object) {
+							if (intersected) intersected.material.emissive?.set(0x000000);
+							intersected = intersects[0].object;
+							if (intersected.material.emissive)
+								intersected.material.emissive.set(0x222222);
+						}
+					} else {
+						if (intersected && intersected.material.emissive)
+							intersected.material.emissive.set(0x000000);
+						intersected = null;
+					}
+				}
+
+				renderer.render(scene, camera);
+			}
+		</script>
+	</body>
+</html>
