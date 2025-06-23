@@ -1,6 +1,6 @@
-# Pointer (Controller Ray) — Documentation
+# Pointer (Controller Ray) — Complete Documentation
 
-This project uses a VR controller pointer (ray and dot) to interact with 3D UI buttons and objects in both VR and desktop modes. The pointer is visualized as a white ray extending from the controller, with a small dot at the intersection point when hovering over interactive elements.
+This project uses a VR controller pointer (ray and dot) to interact with 3D UI buttons and objects in both VR and desktop modes. The pointer is visualized as a white ray extending from the controller, with a small dot at the intersection point when hovering over interactive elements. The ray visually fades out (becomes transparent) from the controller tip to the end, providing clear spatial feedback.
 
 ## How the Pointer Works
 
@@ -11,6 +11,7 @@ This project uses a VR controller pointer (ray and dot) to interact with 3D UI b
   - The pointer's direction is updated every frame to match the controller's orientation.
   - When the ray intersects a UI button, the dot is positioned at the intersection point and made visible.
   - Button states (hovered, selected) are updated based on intersection and controller input.
+  - The ray fades out (alpha transparency) from the controller tip to the end, using a custom alpha texture and correct UV mapping.
 
 - **Desktop Mode:**
 
@@ -31,28 +32,80 @@ This project uses a VR controller pointer (ray and dot) to interact with 3D UI b
 import * as THREE from "three";
 import { XRControllerModelFactory } from "three/addons/webxr/XRControllerModelFactory.js";
 
+function generateRayTexture() {
+	// Create a horizontal gradient alpha texture for the ray (fade along Z)
+	const size = 64;
+	const canvas = document.createElement("canvas");
+	canvas.width = size;
+	canvas.height = 1;
+	const ctx = canvas.getContext("2d");
+	const gradient = ctx.createLinearGradient(0, 0, size, 0);
+	gradient.addColorStop(0, "rgba(255,255,255,0.7)"); // Opaque at base
+	gradient.addColorStop(1, "rgba(255,255,255,0.0)"); // Transparent at tip
+	ctx.fillStyle = gradient;
+	ctx.fillRect(0, 0, size, 1);
+	return canvas;
+}
+
+function generatePointerTexture() {
+	// Create a circular white dot with soft edges
+	const size = 64;
+	const canvas = document.createElement("canvas");
+	canvas.width = size;
+	canvas.height = size;
+	const ctx = canvas.getContext("2d");
+	ctx.clearRect(0, 0, size, size);
+	ctx.beginPath();
+	ctx.arc(size / 2, size / 2, size / 2.5, 0, Math.PI * 2);
+	ctx.closePath();
+	const gradient = ctx.createRadialGradient(
+		size / 2,
+		size / 2,
+		size / 8,
+		size / 2,
+		size / 2,
+		size / 2.5
+	);
+	gradient.addColorStop(0, "rgba(255,255,255,1)");
+	gradient.addColorStop(1, "rgba(255,255,255,0)");
+	ctx.fillStyle = gradient;
+	ctx.fill();
+	return canvas;
+}
+
 export default function VRControl(renderer) {
 	const controllers = [];
 	const controllerGrips = [];
 	const controllerModelFactory = new XRControllerModelFactory();
 
 	// Ray (line) mesh
-	const material = new THREE.MeshBasicMaterial({
-		color: 0xffffff,
-		alphaMap: new THREE.CanvasTexture(generateRayTexture()),
-		transparent: true,
-	});
 	const geometry = new THREE.BoxGeometry(0.004, 0.004, 0.35);
 	geometry.translate(0, 0, -0.15);
-	// ...UV setup omitted for brevity...
+	// Fix UVs so the gradient runs along the Z axis (from base to tip)
+	const uvs = geometry.attributes.uv;
+	for (let i = 0; i < uvs.count; i++) {
+		const z = geometry.attributes.position.getZ(i);
+		const v = Math.abs(z / -0.35); // 0 at base, 1 at tip
+		uvs.setX(i, v); // Use u for horizontal gradient
+	}
+	uvs.needsUpdate = true;
+	const rayTexture = new THREE.CanvasTexture(generateRayTexture());
+	const material = new THREE.MeshBasicMaterial({
+		color: 0xffffff,
+		alphaMap: rayTexture,
+		transparent: true,
+		opacity: 1.0,
+	});
 	const linesHelper = new THREE.Mesh(geometry, material);
 	linesHelper.renderOrder = Infinity;
 
 	// Dot (sprite) mesh
+	const pointerTexture = new THREE.CanvasTexture(generatePointerTexture());
 	const spriteMaterial = new THREE.SpriteMaterial({
-		map: new THREE.CanvasTexture(generatePointerTexture()),
+		map: pointerTexture,
 		sizeAttenuation: false,
 		depthTest: false,
+		transparent: true,
 	});
 	const pointer = new THREE.Sprite(spriteMaterial);
 	pointer.scale.set(0.015, 0.015, 1);
@@ -103,7 +156,6 @@ export default function VRControl(renderer) {
 		setPointerAt,
 	};
 }
-// ...generateRayTexture and generatePointerTexture omitted for brevity...
 ```
 
 ### `interactive_button.js` (Pointer Usage)
@@ -131,9 +183,19 @@ function updateButtons() {
 
 ---
 
+## Transparency and Fading Details
+
+- The pointer ray uses a custom alpha texture (generated in `generateRayTexture`) that fades from opaque (controller tip) to transparent (ray end).
+- The UVs of the box geometry are remapped so the gradient runs along the Z axis, ensuring the fade is visible along the length of the ray.
+- The pointer dot uses a radial gradient for a soft, circular appearance.
+- Both the ray and dot are fully transparent where the alpha texture is 0, and fully visible where the alpha is 1.
+
+---
+
 ## Summary
 
 - The pointer is a ray and dot attached to each VR controller, created in `VRControl.js`.
-- The main script updates the pointer's direction and intersection every frame.
+- The ray visually fades out from the controller tip to the end using a custom alpha texture and UV mapping.
 - The dot is only visible when the pointer ray hits a UI element.
 - Button states are updated based on pointer intersection and input.
+- All logic is modular and can be reused in other Three.js/WebXR projects.
