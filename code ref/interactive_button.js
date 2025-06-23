@@ -198,12 +198,14 @@ function makeTheThing() {
     canvas.width = size;
     canvas.height = 1;
     const ctx = canvas.getContext("2d");
+    // Use a white-to-black gradient for alphaMap (Three.js uses luminance for alpha)
     const gradient = ctx.createLinearGradient(0, 0, size, 0);
-    gradient.addColorStop(0, "rgba(255,255,255,0.7)"); // Opaque at base
-    gradient.addColorStop(1, "rgba(255,255,255,0.0)"); // Transparent at tip
+    gradient.addColorStop(0, "rgb(255,255,255)"); // Opaque (white)
+    gradient.addColorStop(1, "rgb(0,0,0)");       // Transparent (black)
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, size, 1);
     const rayTexture = new THREE.CanvasTexture(canvas);
+    rayTexture.needsUpdate = true;
 
     const geometry = new THREE.BoxGeometry(0.004, 0.004, 0.35);
     geometry.translate(0, 0, -0.15);
@@ -221,13 +223,15 @@ function makeTheThing() {
         alphaMap: rayTexture,
         transparent: true,
         opacity: 1.0,
+        side: THREE.DoubleSide,
     });
     const linesHelper = new THREE.Mesh(geometry, material);
     linesHelper.renderOrder = Infinity;
 
     // Add to scene for demonstration (optional)
     scene.add(linesHelper);
-    linesHelper.position.set(0, 1.5, -1.5); // Example position
+    linesHelper.position.set(0.25, 1.5, -0.5); // Example position
+    linesHelper.rotation.y = Math.PI / 2; // Rotate 90 degrees on Y axis
 }
 
 // Shows the primitive mesh with the passed ID and hide the others
