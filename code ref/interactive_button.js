@@ -185,8 +185,49 @@ function init() {
 
     //
 
+    makeTheThing();
+
     renderer.setAnimationLoop(loop);
 
+}
+
+function makeTheThing() {
+    // Pointer ray mesh (linesHelper) with fading alpha texture
+    const size = 64;
+    const canvas = document.createElement("canvas");
+    canvas.width = size;
+    canvas.height = 1;
+    const ctx = canvas.getContext("2d");
+    const gradient = ctx.createLinearGradient(0, 0, size, 0);
+    gradient.addColorStop(0, "rgba(255,255,255,0.7)"); // Opaque at base
+    gradient.addColorStop(1, "rgba(255,255,255,0.0)"); // Transparent at tip
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, size, 1);
+    const rayTexture = new THREE.CanvasTexture(canvas);
+
+    const geometry = new THREE.BoxGeometry(0.004, 0.004, 0.35);
+    geometry.translate(0, 0, -0.15);
+    // Remap UVs so the gradient runs along the Z axis (from base to tip)
+    const uvs = geometry.attributes.uv;
+    for (let i = 0; i < uvs.count; i++) {
+        const z = geometry.attributes.position.getZ(i);
+        const v = Math.abs(z / -0.35); // 0 at base, 1 at tip
+        uvs.setX(i, v); // Use u for horizontal gradient
+    }
+    uvs.needsUpdate = true;
+
+    const material = new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        alphaMap: rayTexture,
+        transparent: true,
+        opacity: 1.0,
+    });
+    const linesHelper = new THREE.Mesh(geometry, material);
+    linesHelper.renderOrder = Infinity;
+
+    // Add to scene for demonstration (optional)
+    scene.add(linesHelper);
+    linesHelper.position.set(0, 1.5, -1.5); // Example position
 }
 
 // Shows the primitive mesh with the passed ID and hide the others
